@@ -11,6 +11,14 @@ export default function CalculatorPage() {
   const [error, setError] = useState(null);
 
   async function handleCheck() {
+    // Guard against invalid amounts before making a network request at all —
+    // this is basic input validation to handle the edge case of a zero,
+    // negative, or empty amount.
+    if (!amount || amount <= 0) {
+      setError("Enter an amount greater than 0.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -42,6 +50,7 @@ export default function CalculatorPage() {
         <div className="flex gap-3">
           <input
             type="number"
+            min="0"
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
             className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -54,6 +63,8 @@ export default function CalculatorPage() {
             <option value="USD">USD</option>
             <option value="GBP">GBP</option>
             <option value="EUR">EUR</option>
+            {/* Included for completeness — converting KES to itself returns a rate of 1 */}
+            <option value="KES">KES</option>
           </select>
         </div>
 
@@ -66,6 +77,13 @@ export default function CalculatorPage() {
         </button>
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
+
+        {/* Empty state: guides a first-time user before they've checked anything */}
+        {!result && !error && !loading && (
+          <p className="text-slate-400 text-sm">
+            Enter an amount and currency, then check the rate to see results here.
+          </p>
+        )}
 
         {result && (
           <div className="border-t border-slate-200 pt-4 space-y-3">

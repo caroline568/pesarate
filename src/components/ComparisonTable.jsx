@@ -1,3 +1,5 @@
+// Placeholder channel data — illustrative markups, not live figures.
+// In Phase 2 this becomes real data fetched from the backend.
 const CHANNEL_MARKUPS = [
   { name: "Bank Transfer", markup: 0.045 },
   { name: "Mobile Money (M-Pesa)", markup: 0.03 },

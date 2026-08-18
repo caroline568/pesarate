@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
+import hero from "../assets/hero.png";
 
 export default function Home() {
   return (
     <div className="text-center">
+      <img src={hero} alt="" className="w-40 mx-auto mb-6" />
       <h1 className="text-4xl font-bold text-slate-900 mb-4">PesaRate</h1>
       <p className="text-slate-600 leading-relaxed mb-8">
         Sending or receiving money across currencies? Banks and mobile money

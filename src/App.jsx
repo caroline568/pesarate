@@ -6,6 +6,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-slate-50">
+        {/* nav is outside Routes so it persists across every page */}
         <nav className="flex gap-6 px-6 py-4 bg-slate-900 text-white">
           <Link to="/" className="font-semibold hover:text-emerald-400">Home</Link>
           <Link to="/calculator" className="font-semibold hover:text-emerald-400">Calculator</Link>
