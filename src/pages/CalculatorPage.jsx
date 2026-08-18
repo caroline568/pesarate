@@ -19,10 +19,16 @@ export default function CalculatorPage() {
     } catch {
       setError("Couldn't fetch the rate. Try again.");
     } finally {
+      // finally guarantees loading turns off whether the fetch
+      // succeeds or fails, so the button never gets stuck.
       setLoading(false);
     }
   }
 
+  // Only calculate the markup difference once we have a real rate AND
+  // the user has typed a quoted rate. Using !== null (not just a
+  // truthy check) below, since a difference of exactly 0 is a valid,
+  // meaningful result that should still render.
   const quotedDiff =
     result && quotedRate
       ? (result.rate - parseFloat(quotedRate)) * amount
