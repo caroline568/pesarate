@@ -1,6 +1,6 @@
 # PesaRate
 
-**Live demo:** [add link after deploying]
+**Live demo:** [https://pesarate.vercel.app/](https://pesarate.vercel.app/)
 
 ## Description
 Sending or receiving money across currencies? Banks and mobile money channels
