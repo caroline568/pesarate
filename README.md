@@ -35,3 +35,9 @@ Attribution: rate data provided by exchangerate-api.com.
 - The channel markup percentages shown (bank, mobile money, Western Union) are illustrative estimates, not live data from those providers.
 - No caching — every rate check triggers a fresh API call.
 - Originally built against the Frankfurter API, but switched to ExchangeRate-API after discovering Frankfurter doesn't support KES (ECB-sourced currencies only).
+
+## Branching Strategy
+This project uses feature branches for active development, merged into `testing` for integration, then into `main` once verified stable and ready for deployment.
+- `main` — stable, deployed version
+- `testing` — integration branch for in-progress work
+- `feature/*` — individual features or phase-specific work (e.g. `feature/flask-backend`)
