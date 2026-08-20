@@ -15,6 +15,12 @@ ranges across common remittance channels for context.
 - **Calculator** — enter an amount and currency, see the live mid-market rate, compare it against a quoted rate to see the real KES difference
 - Static comparison table of typical markup ranges across common channels
 
+## Tech Stack
+- **React (Vite)** — chosen for fast local development and a lightweight setup well-suited to a single-purpose frontend tool.
+- **React Router** — enables multi-page navigation (Home, Calculator) without full page reloads, closer to how a real product feels.
+- **Tailwind CSS** — utility-first styling colocated with components, allowing quick, consistent design without maintaining separate CSS files.
+- **Vercel** — chosen for deployment because of its native, zero-config support for Vite projects and instant redeploys on every GitHub push.
+
 ## Setup Instructions
 1. Clone the repo: `git clone https://github.com/caroline568/pesarate.git`
 2. Navigate into the project: `cd pesarate`
