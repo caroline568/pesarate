@@ -9,20 +9,32 @@ export default function Home() {
         fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
-      {/* Subtle background pattern */}
+      {/* Full-page hero background */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <img
+          src={heroImage}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-[0.28] brightness-125"
+        />
+
+        {/* Light overlay for readability */}
+        <div className="absolute inset-0 bg-linear-to-r from-[#F7F8F5]/95 via-[#F7F8F5]/75 to-[#F7F8F5]/35" />
+      </div>
+
+      {/* Subtle background texture */}
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,#111512_1px,transparent_1px)] bg-size-[22px_22px] opacity-[0.035]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,#111512_1px,transparent_1px)] bg-size-[22px_22px] opacity-[0.025]"
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2">
-        {/* Hero content */}
-        <section>
+      {/* Landing content */}
+      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-24">
+        <section className="max-w-xl">
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[#6B746B]">
             Financial Intelligence
           </p>
 
-          <h1 className="mb-6 text-6xl font-bold tracking-tight">
+          <h1 className="mb-6 text-6xl font-bold tracking-tight md:text-7xl">
             PesaRate
           </h1>
 
@@ -39,15 +51,6 @@ export default function Home() {
             Open the workspace
             <i className="ti ti-arrow-right" />
           </Link>
-        </section>
-
-        {/* Hero illustration */}
-        <section className="relative flex h-105 items-center justify-center">
-          <img
-            src={heroImage}
-            alt="PesaRate currency conversion illustration showing KES converting to USD, GBP, and EUR with exchange-rate charts and a world map"
-            className="h-full w-full object-contain drop-shadow-[0_20px_50px_rgba(17,21,18,0.12)]"
-          />
         </section>
       </div>
     </main>

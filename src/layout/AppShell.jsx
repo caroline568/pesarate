@@ -1,60 +1,143 @@
 import { NavLink, Outlet } from "react-router-dom";
 
-const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: "ti-layout-dashboard" },
-  { to: "/convert", label: "Convert", icon: "ti-arrows-exchange" },
-  { to: "/understand", label: "Understand", icon: "ti-chart-line" },
-  { to: "/monitor", label: "Monitor", icon: "ti-bell" },
-  { to: "/save", label: "Save", icon: "ti-star" },
-  { to: "/explore", label: "Explore", icon: "ti-world" },
-  { to: "/plan", label: "Plan", icon: "ti-plane" },
+const navigation = [
+  {
+    to: "/dashboard",
+    label: "Overview",
+    icon: "ti-layout-dashboard",
+  },
+  {
+    to: "/money",
+    label: "Money",
+    icon: "ti-arrows-exchange",
+  },
+  {
+    to: "/rates",
+    label: "Rates",
+    icon: "ti-chart-line",
+  },
+  {
+    to: "/news",
+    label: "News",
+    icon: "ti-news",
+  },
+  {
+    to: "/explore",
+    label: "Explore",
+    icon: "ti-world",
+  },
+  {
+    to: "/monitor",
+    label: "Monitor",
+    icon: "ti-bell-ringing",
+  },
 ];
+
+function NavigationItem({ to, label, icon }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        [
+          "group flex items-center gap-2.5 rounded-xl px-3 py-2.5",
+          "text-xs font-medium transition-all duration-300",
+          isActive
+            ? "bg-[#17201B] text-white shadow-lg"
+            : "text-[#6F7A73] hover:bg-white hover:text-[#17201B]",
+        ].join(" ")
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <span
+            className={[
+              "flex h-7 w-7 items-center justify-center rounded-lg",
+              "transition-all duration-300",
+              isActive
+                ? "bg-hero-accent text-[#17201B]"
+                : "bg-[#F1F4EE] text-[#7C8780] group-hover:bg-[#EAF8D9]",
+            ].join(" ")}
+          >
+            <i className={`ti ${icon} text-sm`} />
+          </span>
+
+          <span>{label}</span>
+        </>
+      )}
+    </NavLink>
+  );
+}
 
 export default function AppShell() {
   return (
-    <div className="min-h-screen bg-[#0B0B0F] text-white flex">
-      <aside className="w-56 border-r border-white/10 p-5 flex flex-col">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-lime-400 flex items-center justify-center">
-            <i className="ti ti-coin text-black text-lg" />
-          </div>
-          <span className="font-medium">PesaRate</span>
-        </div>
+    <div className="min-h-screen bg-[#F7F8F5] font-display text-[#17201B]">
+      {/* Ambient background */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        aria-hidden="true"
+      >
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-hero-accent/10 blur-3xl" />
 
-        <p className="text-xs text-white/40 mb-2 uppercase tracking-wide">Workspace</p>
-        <nav className="flex flex-col gap-1 mb-6">
-          {NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
-                  isActive ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5"
-                }`
-              }
-            >
-              <i className={`ti ${item.icon} text-base`} />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
+        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
 
-      <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b border-white/10 flex items-center justify-between px-6">
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white/70">
-            <i className="ti ti-search text-base" />
-            Search currencies, countries...
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs bg-white/10 px-2 py-1 rounded-md">KES · Kenya Shilling</span>
-            <i className="ti ti-bell text-white/60" />
-          </div>
-        </header>
-        <main className="flex-1 p-6 overflow-y-auto">
-          <Outlet />
-        </main>
+        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#DDF5EA]/40 blur-3xl" />
       </div>
+
+      {/* Top branding */}
+      <header className="fixed left-0 right-0 top-0 z-50 px-5 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          {/* Logo */}
+          <NavLink
+            to="/dashboard"
+            className="group flex items-center gap-3"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#17201B] text-hero-accent shadow-lg transition-transform duration-300 group-hover:scale-105">
+              <span className="text-sm font-bold">P</span>
+            </div>
+
+            <div className="hidden sm:block">
+              <p className="text-sm font-semibold tracking-tight">
+                PesaRate
+              </p>
+
+              <p className="text-[9px] uppercase tracking-[0.18em] text-[#89938C]">
+                Financial workspace
+              </p>
+            </div>
+          </NavLink>
+
+          {/* Live status */}
+          <div className="flex items-center gap-2 rounded-full border border-black/6 bg-white/75 px-3 py-2 shadow-sm backdrop-blur-xl">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-50" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+            </span>
+
+            <span className="text-[10px] font-medium text-[#68736C]">
+              Markets live
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main workspace */}
+      <main className="relative min-h-screen px-5 pb-32 pt-28 sm:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Outlet />
+        </div>
+      </main>
+
+      {/* Floating glass navigation */}
+      <nav className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2">
+        <div className="flex items-center gap-1 rounded-2xl border border-black/6 bg-white/80 p-2 shadow-[0_20px_60px_rgba(23,32,27,0.14)] backdrop-blur-2xl">
+          {navigation.map((item) => (
+            <NavigationItem
+              key={item.to}
+              {...item}
+            />
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

@@ -10,7 +10,7 @@ function fairnessLabel(diffPercent) {
 }
 
 export default function Convert() {
-  const [amount, setAmount] = useState(250000);
+  const [amount, setAmount] = useState(25000);
   const [from, setFrom] = useState("KES");
   const [to, setTo] = useState("USD");
   const [rate, setRate] = useState(null);
