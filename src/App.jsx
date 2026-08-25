@@ -1,23 +1,37 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home";
-import CalculatorPage from "./pages/CalculatorPage";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+import AppShell from "./layout/AppShell";
+import Dashboard from "./pages/Dashboard";
+import Convert from "./pages/Convert";
+import Understand from "./pages/Understand";
+import Monitor from "./pages/Monitor";
+import Save from "./pages/Save";
+import Explore from "./pages/Explore";
+import CountryDetail from "./pages/CountryDetail";
+import Plan from "./pages/Plan";
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-50">
-        {/* nav is outside Routes so it persists across every page */}
-        <nav className="flex gap-6 px-6 py-4 bg-slate-900 text-white">
-          <Link to="/" className="font-semibold hover:text-emerald-400">Home</Link>
-          <Link to="/calculator" className="font-semibold hover:text-emerald-400">Calculator</Link>
-        </nav>
-        <main className="max-w-2xl mx-auto px-6 py-10">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/calculator" element={<CalculatorPage />} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+        <Route element={<AppShell />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/convert" element={<Convert />} />
+          <Route path="/understand" element={<Understand />} />
+          <Route path="/monitor" element={<Monitor />} />
+          <Route path="/save" element={<Save />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/explore/:code" element={<CountryDetail />} />
+          <Route path="/plan" element={<Plan />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }
