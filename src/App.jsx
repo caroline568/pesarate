@@ -2,10 +2,11 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate,
 } from "react-router-dom";
 
 import AppShell from "./layout/AppShell";
+
+import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Convert from "./pages/Convert";
 import Understand from "./pages/Understand";
@@ -19,8 +20,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Landing page */}
+        <Route path="/" element={<Home />} />
 
+        {/* PesaRate workspace */}
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/convert" element={<Convert />} />
