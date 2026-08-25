@@ -9,12 +9,11 @@ import AppShell from "./layout/AppShell";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Convert from "./pages/Convert";
-import Understand from "./pages/Understand";
-import Monitor from "./pages/Monitor";
-import Save from "./pages/Save";
+import Rates from "./pages/Rates";
+import News from "./pages/News";
 import Explore from "./pages/Explore";
 import CountryDetail from "./pages/CountryDetail";
-import Plan from "./pages/Plan";
+import Monitor from "./pages/Monitor";
 
 function App() {
   return (
@@ -26,13 +25,25 @@ function App() {
         {/* PesaRate workspace */}
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/convert" element={<Convert />} />
-          <Route path="/understand" element={<Understand />} />
-          <Route path="/monitor" element={<Monitor />} />
-          <Route path="/save" element={<Save />} />
+
+          {/* Money */}
+          <Route path="/money" element={<Convert />} />
+
+          {/* Rates + alerts */}
+          <Route path="/rates" element={<Rates />} />
+
+          {/* Financial news */}
+          <Route path="/news" element={<News />} />
+
+          {/* Explore + context */}
           <Route path="/explore" element={<Explore />} />
-          <Route path="/explore/:code" element={<CountryDetail />} />
-          <Route path="/plan" element={<Plan />} />
+          <Route
+            path="/explore/:code"
+            element={<CountryDetail />}
+          />
+
+          {/* Rate monitoring */}
+          <Route path="/monitor" element={<Monitor />} />
         </Route>
       </Routes>
     </BrowserRouter>
