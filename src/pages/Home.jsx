@@ -1,21 +1,55 @@
 import { Link } from "react-router-dom";
+import heroImage from "../assets/pesarate-hero.png";
 
 export default function Home() {
   return (
-    <div className="text-center">
-      <h1 className="text-4xl font-bold text-slate-900 mb-4">PesaRate</h1>
-      <p className="text-slate-600 leading-relaxed mb-8">
-        Sending or receiving money across currencies? Banks and mobile money
-        channels often quote rates marked up above the real market rate —
-        and you rarely know by how much. PesaRate shows you the true
-        mid-market rate and what your channel's markup is actually costing you.
-      </p>
-      <Link
-        to="/calculator"
-        className="inline-block bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition"
-      >
-        Check a rate
-      </Link>
-    </div>
+    <main
+      className="relative min-h-screen overflow-hidden bg-[#F7F8F5] text-[#111512]"
+      style={{
+        fontFamily: "'Space Grotesk', sans-serif",
+      }}
+    >
+      {/* Subtle background pattern */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,#111512_1px,transparent_1px)] bg-size-[22px_22px] opacity-[0.035]"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2">
+        {/* Hero content */}
+        <section>
+          <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[#6B746B]">
+            Financial Intelligence
+          </p>
+
+          <h1 className="mb-6 text-6xl font-bold tracking-tight">
+            PesaRate
+          </h1>
+
+          <p className="mb-8 max-w-lg text-lg leading-relaxed text-[#5F665F]">
+            A financial intelligence and travel money workspace that helps
+            people understand exchange rates, track important conversions,
+            and make better decisions about moving or spending money.
+          </p>
+
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 rounded-xl bg-hero-accent px-6 py-3 font-medium text-[#111512] shadow-[0_0_30px_-5px_rgba(163,230,53,0.35)] transition hover:bg-[#bef264]"
+          >
+            Open the workspace
+            <i className="ti ti-arrow-right" />
+          </Link>
+        </section>
+
+        {/* Hero illustration */}
+        <section className="relative flex h-105 items-center justify-center">
+          <img
+            src={heroImage}
+            alt="PesaRate currency conversion illustration showing KES converting to USD, GBP, and EUR with exchange-rate charts and a world map"
+            className="h-full w-full object-contain drop-shadow-[0_20px_50px_rgba(17,21,18,0.12)]"
+          />
+        </section>
+      </div>
+    </main>
   );
 }

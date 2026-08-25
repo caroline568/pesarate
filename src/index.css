@@ -1,1 +1,14 @@
 @import "tailwindcss";
+@theme {
+  --color-base: #0D1013;
+  --color-panel: #15181C;
+  --color-line: rgba(255,255,255,0.08);
+  --color-accent: #2DD9A8;
+  --color-accent-muted: rgba(45,217,168,0.12);
+  --color-negative: #F87171;
+  --color-hero-accent: #A3E635;
+
+  --font-display: 'Space Grotesk', sans-serif;
+
+  --radius-card: 1rem;
+}
