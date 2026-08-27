@@ -1,106 +1,96 @@
-import { useState, useEffect } from "react";
-import { getRates } from "../api";
+import { useState } from "react";
+import { ArrowLeftRight, Save, ShieldCheck } from "lucide-react";
+import { useRates } from "../hooks/useRates";
+import { useLocalCollection } from "../hooks/useLocalCollection";
+import { Card, CardEyebrow } from "../components/Card";
+import PageHeader from "../components/PageHeader";
+import { ErrorState } from "../components/DataState";
 
-function fairnessLabel(diffPercent) {
-  const abs = Math.abs(diffPercent);
-  if (abs < 1) return { label: "Fair", color: "text-lime-400", dot: "🟢" };
-  if (abs < 3) return { label: "Slight markup", color: "text-yellow-400", dot: "🟡" };
-  if (abs < 6) return { label: "High markup", color: "text-orange-400", dot: "🟠" };
-  return { label: "Very high markup", color: "text-red-400", dot: "🔴" };
-}
+const CURRENCIES = ["KES", "USD", "EUR", "GBP", "AED", "TZS", "UGX", "ZAR"];
+const COMPARE_POINTS = ["Mid-market rate", "Provider markup", "Fixed transfer fee", "Amount actually received"];
 
 export default function Convert() {
   const [amount, setAmount] = useState(25000);
   const [from, setFrom] = useState("KES");
   const [to, setTo] = useState("USD");
-  const [rate, setRate] = useState(null);
-  const [providerRate, setProviderRate] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { rates, status, reload } = useRates(from);
+  const { add } = useLocalCollection("pesarate-saved", { limit: 10 });
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getRates(from);
-        if (!cancelled) setRate(data.rates?.[to] ?? null);
-      } catch {
-        if (!cancelled) setError("Couldn't fetch the rate. Try again.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [from, to]);
-
-  const converted = rate ? amount * rate : null;
-  const parsedProvider = parseFloat(providerRate);
-  const hasProvider = providerRate !== "" && !isNaN(parsedProvider) && parsedProvider > 0;
-  const providerConverted = hasProvider ? amount * parsedProvider : null;
-  const lossAmount = hasProvider && converted ? converted - providerConverted : null;
-  const diffPercent = hasProvider && rate ? ((parsedProvider - rate) / rate) * 100 : null;
-  const fairness = diffPercent !== null ? fairnessLabel(diffPercent) : null;
+  const rate = from === to ? 1 : rates?.[to];
+  const result = rate ? amount * rate : null;
+  const swap = () => { setFrom(to); setTo(from); };
+  const save = () => add({ amount, to, from, rate, value: result });
 
   return (
-    <div className="max-w-lg">
-      <h1 className="text-2xl font-medium mb-6">What is my money worth?</h1>
+    <div className="max-w-5xl mx-auto">
+      <PageHeader
+        eyebrow="Convert"
+        title="The number is only the beginning."
+        description="Convert, compare the rate, then understand what you will actually receive."
+      />
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-5">
-        <div className="flex items-center gap-3 mb-4">
-          <input
-            type="number"
-            min="0"
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
-            className="bg-transparent text-2xl font-medium outline-none flex-1"
-          />
-          <select value={from} onChange={(e) => setFrom(e.target.value)} className="bg-white/10 rounded-lg px-3 py-1.5 text-sm">
-            <option>KES</option><option>USD</option><option>GBP</option><option>EUR</option>
-          </select>
-        </div>
-        <p className="text-white/40 text-sm mb-1">↓</p>
-        <div className="flex items-center gap-3">
-          <p className="text-2xl font-medium">
-            {loading ? "…" : converted !== null ? converted.toLocaleString(undefined, { maximumFractionDigits: 2 }) : "—"}
-          </p>
-          <select value={to} onChange={(e) => setTo(e.target.value)} className="bg-white/10 rounded-lg px-3 py-1.5 text-sm ml-auto">
-            <option>USD</option><option>KES</option><option>GBP</option><option>EUR</option>
-          </select>
-        </div>
-        {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
-        {rate && <p className="text-white/40 text-xs mt-3">Live mid-market rate: 1 {from} = {rate.toFixed(5)} {to}</p>}
-      </div>
+      {status === "error" && <ErrorState message="Rate unavailable right now." onRetry={reload} />}
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-        <p className="text-sm text-white/60 mb-2">What your provider offers</p>
-        <input
-          type="number"
-          placeholder="Enter provider rate"
-          value={providerRate}
-          onChange={(e) => setProviderRate(e.target.value)}
-          className="w-full bg-white/10 rounded-lg px-3 py-2 text-sm outline-none mb-4"
-        />
+      <div className="grid gap-5 lg:grid-cols-[1.3fr_.7fr]">
+        <Card className="p-5 sm:p-7">
+          <div className="grid items-center gap-3 md:grid-cols-[1fr_52px_1fr]">
+            <div className="rounded-2xl bg-paper/[0.06] p-5">
+              <label className="text-xs text-paper/45">From</label>
+              <div className="mt-2 flex gap-3">
+                <select value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-xl bg-paper px-3 font-bold text-ink outline-none">
+                  {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
+                </select>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value) || 0)}
+                  className="w-full min-w-0 bg-transparent font-[family-name:var(--font-mono)] text-3xl font-semibold outline-none"
+                />
+              </div>
+            </div>
+            <button onClick={swap} aria-label="Swap currencies" className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-lime text-ink">
+              <ArrowLeftRight size={17} />
+            </button>
+            <div className="rounded-2xl bg-paper/[0.06] p-5">
+              <label className="text-xs text-paper/45">To</label>
+              <div className="mt-2 flex items-center gap-3">
+                <select value={to} onChange={(e) => setTo(e.target.value)} className="rounded-xl bg-paper px-3 py-3 font-bold text-ink outline-none">
+                  {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
+                </select>
+                <div className="truncate font-[family-name:var(--font-mono)] text-3xl font-semibold">
+                  {result?.toLocaleString(undefined, { maximumFractionDigits: 2 }) || "—"}
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {hasProvider && lossAmount !== null && (
-          <>
-            <p className="text-xs text-white/40 mb-1">
-              {lossAmount > 0 ? "You could be losing" : "You're getting a fair or better deal"}
-            </p>
-            {lossAmount > 0 && (
-              <p className="text-3xl font-medium text-red-400 mb-2">
-                {to} {Math.abs(lossAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </p>
-            )}
-            <p className="text-xs text-white/40 mb-3">{diffPercent.toFixed(1)}% {diffPercent < 0 ? "below" : "above"} mid-market</p>
+          <div className="mt-5 rounded-2xl bg-ink p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[.16em] text-paper/40">Estimated value</p>
+            <div className="mt-2 text-5xl font-semibold tracking-tight font-[family-name:var(--font-mono)]">
+              {result?.toLocaleString(undefined, { maximumFractionDigits: 2 }) || "—"}{" "}
+              <span className="text-base text-paper/40">{to}</span>
+            </div>
+            <div className="mt-4 text-sm text-paper/55">1 {from} = {rate ? rate.toFixed(6) : "—"} {to}</div>
+            <button onClick={save} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-lime px-4 py-2.5 text-sm font-semibold text-ink">
+              <Save size={15} /> Save this conversion
+            </button>
+          </div>
+        </Card>
 
-            {fairness && (
-              <p className={`text-sm font-medium ${fairness.color}`}>{fairness.dot} {fairness.label}</p>
-            )}
-          </>
-        )}
+        <aside className="space-y-5">
+          <Card className="p-5">
+            <ShieldCheck size={19} className="text-lime" />
+            <h3 className="mt-4 font-semibold">What to compare</h3>
+            <ul className="mt-4 space-y-3 text-sm text-paper/60">
+              {COMPARE_POINTS.map((p) => <li key={p}>• {p}</li>)}
+            </ul>
+          </Card>
+          <Card className="p-5">
+            <CardEyebrow>PesaRate principle</CardEyebrow>
+            <p className="mt-3 text-lg font-semibold">A low fee does not always mean a better deal.</p>
+            <p className="mt-2 text-sm text-paper/55">The best comparison is the final amount in your hands.</p>
+          </Card>
+        </aside>
       </div>
     </div>
   );

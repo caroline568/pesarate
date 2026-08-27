@@ -1,53 +1,32 @@
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-} from "react-router-dom";
-
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "./layout/AppShell";
-
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Convert from "./pages/Convert";
+import TravelMoney from "./pages/TravelMoney";
 import Rates from "./pages/Rates";
-import News from "./pages/News";
+import Monitor from "./pages/Monitor";
 import Explore from "./pages/Explore";
 import CountryDetail from "./pages/CountryDetail";
-import Monitor from "./pages/Monitor";
+import News from "./pages/News";
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Landing page */}
         <Route path="/" element={<Home />} />
-
-        {/* PesaRate workspace */}
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<Dashboard />} />
-
-          {/* Money */}
           <Route path="/money" element={<Convert />} />
-
-          {/* Rates + alerts */}
+          <Route path="/travel" element={<TravelMoney />} />
           <Route path="/rates" element={<Rates />} />
-
-          {/* Financial news */}
-          <Route path="/news" element={<News />} />
-
-          {/* Explore + context */}
-          <Route path="/explore" element={<Explore />} />
-          <Route
-            path="/explore/:code"
-            element={<CountryDetail />}
-          />
-
-          {/* Rate monitoring */}
           <Route path="/monitor" element={<Monitor />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/explore/:code" element={<CountryDetail />} />
+          <Route path="/news" element={<News />} />
         </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
-export default App;

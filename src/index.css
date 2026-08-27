@@ -1,43 +1,117 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --color-base: #080D12;
-  --color-panel: #151C22;
-  --color-line: rgba(255, 255, 255, 0.08);
-
-  --color-accent: #2DD9A8;
-  --color-accent-muted: rgba(45, 217, 168, 0.12);
-
-  --color-negative: #F87171;
-  --color-hero-accent: #A3E635;
-
-  --color-text: #F4F7F5;
-  --color-muted: #8A9691;
-
-  --font-display: "Space Grotesk", sans-serif;
-
-  --radius-card: 1rem;
-  --radius-pill: 9999px;
+  --color-ink: #0b1614;
+  --color-ink-soft: #12211d;
+  --color-paper: #f4f1e6;
+  --color-paper-dim: #e9e4d2;
+  --color-marigold: #f2b84b;
+  --color-coral: #ff6b5e;
+  --color-lime: #c6f135;
+  --color-line: rgba(244, 241, 230, 0.14);
+  --color-line-soft: rgba(11, 22, 20, 0.12);
+  --font-display: "Fraunces", serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
-html {
-  background: #080D12;
+:root {
+  font-family: "Inter", sans-serif;
+  color: var(--color-paper);
+  background: var(--color-ink);
+  color-scheme: dark;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  background: #080D12;
-  color: #F4F7F5;
-  font-family: "Space Grotesk", sans-serif;
+* { box-sizing: border-box; }
+html { background: var(--color-ink); }
+body { margin: 0; min-width: 320px; background: var(--color-ink); }
+button, input, select, textarea { font: inherit; color: inherit; }
+::selection { background: var(--color-lime); color: var(--color-ink); }
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid var(--color-lime);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
-* {
-  box-sizing: border-box;
+/* --- Signature texture: a fine banknote guilloché grid on the ink bg --- */
+.bureau-bg {
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(242, 184, 75, 0.10), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(198, 241, 53, 0.08), transparent 45%),
+    linear-gradient(rgba(244, 241, 230, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 241, 230, 0.05) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
 }
 
-button,
-input,
-select {
-  font: inherit;
+/* --- Ticket / banknote card: perforated edge + denomination corner --- */
+.ticket {
+  position: relative;
+  background: var(--color-ink-soft);
+  border: 1px solid var(--color-line);
+  border-radius: 22px;
+}
+.ticket::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(242,184,75,.35), transparent 35%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.denom {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 40;
+  opacity: 0.16;
+}
+
+/* --- Live ticker marquee (respects reduced motion) --- */
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 38s linear infinite;
+}
+.ticker-wrap:hover .ticker-track { animation-play-state: paused; }
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+}
+
+/* --- Loading skeleton shimmer --- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(244, 241, 230, 0.06);
+}
+.skeleton::after {
+  content: "";
+  position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(244,241,230,.09), transparent);
+  animation: shimmer 1.6s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+
+.stamp {
+  transform: rotate(-6deg);
+  border: 2px solid currentColor;
+  border-radius: 9999px;
+}
+
+.torn-top {
+  -webkit-mask-image: radial-gradient(circle 5px at 8px 0, transparent 5px, black 5.5px);
+  -webkit-mask-size: 16px 100%;
+  -webkit-mask-repeat: repeat-x;
 }

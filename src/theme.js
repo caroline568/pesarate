@@ -1,22 +1,24 @@
+// Design tokens for PesaRate's "Exchange Bureau" visual language:
+// a currency/travel-document aesthetic (banknote colour-coding, ticket
+// perforations, departure-board ticker) instead of a generic SaaS dashboard.
 export const theme = {
   color: {
-    bg: "#080D12",
-    panel: "#151C22",
-    border: "rgba(255, 255, 255, 0.08)",
-    accent: "#2DD9A8",
-    accentMuted: "rgba(45, 217, 168, 0.12)",
-    heroAccent: "#A3E635",
-    negative: "#F87171",
-    text: "#F4F7F5",
-    muted: "#8A9691",
+    ink: "#0b1614",
+    inkSoft: "#12211d",
+    paper: "#f4f1e6",
+    paperDim: "#e9e4d2",
+    marigold: "#f2b84b", // benchmark / neutral data
+    coral: "#ff6b5e",    // down / alert
+    lime: "#c6f135",     // primary action / up
+    line: "rgba(244, 241, 230, 0.14)",
   },
-
   font: {
-    display: "'Space Grotesk', sans-serif",
+    display: "'Fraunces', serif",
+    body: "'Inter', sans-serif",
+    mono: "'JetBrains Mono', monospace",
   },
-
   radius: {
-    card: "1rem",
+    ticket: "22px",
     pill: "9999px",
   },
 };

@@ -1,56 +1,59 @@
 import { Link } from "react-router-dom";
-import heroImage from "../assets/pesarate-hero.png";
+import { ArrowRight, ArrowLeftRight, Plane, TrendingUp, Sparkles } from "lucide-react";
+import RateTicker from "../components/RateTicker";
+
+const pillars = [
+  [ArrowLeftRight, "Convert", "Get the number, then understand it."],
+  [TrendingUp, "Understand", "See movements, trends and context."],
+  [Plane, "Travel money", "Turn a trip budget into a real spending plan."],
+];
 
 export default function Home() {
   return (
-    <main
-      className="relative min-h-screen overflow-hidden bg-[#F7F8F5] text-[#111512]"
-      style={{
-        fontFamily: "'Space Grotesk', sans-serif",
-      }}
-    >
-      {/* Full-page hero background */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <img
-          src={heroImage}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-[0.28] brightness-125"
-        />
+    <main className="bureau-bg min-h-screen bg-ink text-paper">
+      <RateTicker />
+      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+        <nav className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="stamp grid h-10 w-10 place-items-center rounded-xl bg-lime font-[family-name:var(--font-display)] font-semibold text-ink">
+              P
+            </span>
+            <b className="font-[family-name:var(--font-display)] text-lg">PesaRate</b>
+          </div>
+          <Link to="/dashboard" className="text-sm font-medium text-paper/80 hover:text-paper">
+            Open workspace <ArrowRight className="inline ml-1" size={15} />
+          </Link>
+        </nav>
 
-        {/* Light overlay for readability */}
-        <div className="absolute inset-0 bg-linear-to-r from-[#F7F8F5]/95 via-[#F7F8F5]/75 to-[#F7F8F5]/35" />
-      </div>
-
-      {/* Subtle background texture */}
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,#111512_1px,transparent_1px)] bg-size-[22px_22px] opacity-[0.025]"
-        aria-hidden="true"
-      />
-
-      {/* Landing content */}
-      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-24">
-        <section className="max-w-xl">
-          <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-[#6B746B]">
-            Financial Intelligence
-          </p>
-
-          <h1 className="mb-6 text-6xl font-bold tracking-tight md:text-7xl">
-            PesaRate
+        <section className="max-w-4xl pt-20 sm:pt-28">
+          <div className="inline-flex items-center gap-2 rounded-full border border-line bg-paper/[0.06] px-3 py-2 text-xs font-medium text-paper/70">
+            <Sparkles size={14} className="text-marigold" /> Financial intelligence for moving money
+          </div>
+          <h1 className="mt-7 font-[family-name:var(--font-display)] text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">
+            Know what your money is worth.
+            <br />
+            <span className="text-paper/40">Know what it means.</span>
           </h1>
-
-          <p className="mb-8 max-w-lg text-lg leading-relaxed text-[#5F665F]">
-            A financial intelligence and travel money workspace that helps
-            people understand exchange rates, track important conversions,
-            and make better decisions about moving or spending money.
+          <p className="mt-7 max-w-2xl text-base leading-relaxed text-paper/60 sm:text-lg">
+            PesaRate helps you convert currencies, understand rate movements, track important
+            conversions, plan travel money, and make better decisions before you move or spend.
           </p>
-
           <Link
             to="/dashboard"
-            className="inline-flex items-center gap-2 rounded-xl bg-hero-accent px-6 py-3 font-medium text-[#111512] shadow-[0_0_30px_-5px_rgba(163,230,53,0.35)] transition hover:bg-[#bef264]"
+            className="mt-9 inline-flex items-center gap-2 rounded-full bg-lime px-6 py-3.5 text-sm font-semibold text-ink shadow-[0_16px_40px_rgba(198,241,53,.22)]"
           >
-            Open the workspace
-            <i className="ti ti-arrow-right" />
+            Enter PesaRate <ArrowRight size={16} />
           </Link>
+        </section>
+
+        <section className="mt-24 grid gap-4 pb-16 sm:grid-cols-3">
+          {pillars.map(([Icon, title, desc]) => (
+            <div key={title} className="ticket p-5">
+              <Icon size={20} className="text-marigold" />
+              <h3 className="mt-5 font-semibold">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-paper/55">{desc}</p>
+            </div>
+          ))}
         </section>
       </div>
     </main>

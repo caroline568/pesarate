@@ -1,143 +1,89 @@
-import { useState, useEffect } from "react";
-import { getRates } from "../api";
+import { useState } from "react";
+import { Bell, Plus, Trash2, TrendingUp } from "lucide-react";
+import { useLocalCollection } from "../hooks/useLocalCollection";
+import PageHeader from "../components/PageHeader";
+import { Card, CardEyebrow } from "../components/Card";
+import { EmptyState } from "../components/DataState";
 
-const STORAGE_KEY = "pesarate_rate_alerts";
-
-function loadAlerts() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
+const PAIR_OPTIONS = ["USD/KES", "GBP/KES", "EUR/KES", "AED/KES"];
 
 export default function Monitor() {
-  const [alerts, setAlerts] = useState(loadAlerts);
-  const [currentRates, setCurrentRates] = useState({});
-  const [from, setFrom] = useState("USD");
-  const [to, setTo] = useState("KES");
-  const [target, setTarget] = useState("");
-  const [direction, setDirection] = useState("above");
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(alerts));
-  }, [alerts]);
-
- useEffect(() => {
-  async function checkAll() {
-    const results = {};
-    const pairs = [...new Set(alerts.map((a) => `${a.from}-${a.to}`))];
-    for (const pair of pairs) {
-      const [f, t] = pair.split("-");
-      try {
-        const data = await getRates(f);
-        results[pair] = data.rates?.[t] ?? null;
-      } catch {
-        results[pair] = null;
-      }
-    }
-    setCurrentRates(results);
-  }
-  if (alerts.length > 0) checkAll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [alerts.map((a) => `${a.from}-${a.to}`).join(",")]);
-
-  function createAlert() {
-    const parsed = parseFloat(target);
-    if (!parsed || parsed <= 0) return;
-    setAlerts([
-      ...alerts,
-      { id: Date.now(), from, to, target: parsed, direction, active: true },
-    ]);
-    setTarget("");
-  }
-
-  function toggleActive(id) {
-    setAlerts(alerts.map((a) => (a.id === id ? { ...a, active: !a.active } : a)));
-  }
-
-  function deleteAlert(id) {
-    setAlerts(alerts.filter((a) => a.id !== id));
-  }
+  const { items: alerts, add, remove } = useLocalCollection("pesarate-alerts");
+  const [pair, setPair] = useState(PAIR_OPTIONS[0]);
+  const [target, setTarget] = useState(130);
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-medium mb-1">Don't constantly check the rate.</h1>
-      <p className="text-white/50 text-sm mb-6">Let PesaRate watch it for you.</p>
+    <div className="max-w-5xl">
+      <PageHeader
+        eyebrow="Watchlist"
+        title="Watch the rates that matter."
+        description="Set decision points for currencies you actually care about."
+      />
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-6">
-        <p className="text-sm text-white/60 mb-3">Create an alert</p>
-        <div className="flex items-center gap-3 mb-3 flex-wrap">
-          <select value={from} onChange={(e) => setFrom(e.target.value)} className="bg-white/10 rounded-lg px-3 py-1.5 text-sm">
-            <option>USD</option><option>GBP</option><option>EUR</option>
+      <div className="grid gap-5 lg:grid-cols-[.9fr_1.1fr]">
+        <Card className="p-6">
+          <div className="flex gap-3">
+            <Bell className="text-lime" />
+            <div>
+              <h2 className="font-semibold">Create a rate alert</h2>
+              <p className="mt-1 text-xs text-paper/50">
+                PesaRate will use this as a target to help you decide when to look again.
+              </p>
+            </div>
+          </div>
+          <label className="mt-6 block text-xs text-paper/50">Currency pair</label>
+          <select
+            value={pair}
+            onChange={(e) => setPair(e.target.value)}
+            className="mt-2 w-full rounded-xl bg-paper/[0.06] p-3 font-medium outline-none"
+          >
+            {PAIR_OPTIONS.map((p) => <option key={p}>{p}</option>)}
           </select>
-          <span className="text-white/40">/</span>
-          <select value={to} onChange={(e) => setTo(e.target.value)} className="bg-white/10 rounded-lg px-3 py-1.5 text-sm">
-            <option>KES</option><option>USD</option><option>EUR</option>
-          </select>
-          <select value={direction} onChange={(e) => setDirection(e.target.value)} className="bg-white/10 rounded-lg px-3 py-1.5 text-sm">
-            <option value="above">reaches above</option>
-            <option value="below">falls below</option>
-          </select>
+          <label className="mt-4 block text-xs text-paper/50">Target rate</label>
           <input
             type="number"
-            placeholder="Target rate"
             value={target}
-            onChange={(e) => setTarget(e.target.value)}
-            className="bg-white/10 rounded-lg px-3 py-1.5 text-sm w-28 outline-none"
+            onChange={(e) => setTarget(Number(e.target.value))}
+            className="mt-2 w-full rounded-xl bg-paper/[0.06] p-3 outline-none font-[family-name:var(--font-mono)]"
           />
-        </div>
-        <button
-          onClick={createAlert}
-          className="bg-lime-400 text-black text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-lime-300"
-        >
-          Create Alert
-        </button>
-      </div>
+          <button
+            onClick={() => add({ pair, target })}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-lime py-3 text-sm font-semibold text-ink"
+          >
+            <Plus size={16} /> Add to watchlist
+          </button>
+        </Card>
 
-      <p className="text-xs text-white/40 uppercase mb-3">Active alerts</p>
-      <div className="space-y-3">
-        {alerts.length === 0 && (
-          <p className="text-white/40 text-sm">No alerts yet — create one above.</p>
-        )}
-        {alerts.map((a) => {
-          const current = currentRates[`${a.from}-${a.to}`];
-          const triggered =
-            current != null &&
-            (a.direction === "above" ? current >= a.target : current <= a.target);
-          return (
-            <div key={a.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{a.from} / {a.to}</p>
-                <p className="text-xs text-white/40">
-                  Alert when {a.direction} {a.target}
-                  {current != null && <> &middot; now {current.toFixed(2)}</>}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                {triggered && a.active && (
-                  <span className="text-xs text-lime-400">Target reached</span>
-                )}
-                <span className={`text-xs ${a.active ? "text-lime-400" : "text-white/30"}`}>
-                  <i className="ti ti-circle-filled text-[8px] align-middle mr-1" />
-                  {a.active ? "Monitoring" : "Paused"}
-                </span>
-                <button onClick={() => toggleActive(a.id)} className="text-white/40 hover:text-white text-xs">
-                  {a.active ? "Pause" : "Resume"}
-                </button>
-                <button onClick={() => deleteAlert(a.id)} className="text-white/40 hover:text-red-400 text-xs">
-                  Delete
-                </button>
-              </div>
+        <Card className="p-6">
+          <div className="flex justify-between">
+            <div>
+              <CardEyebrow>Your decision points</CardEyebrow>
+              <h2 className="mt-1 font-semibold">Active alerts</h2>
             </div>
-          );
-        })}
+            <TrendingUp size={18} className="text-lime" />
+          </div>
+          {alerts.length ? (
+            <div className="mt-5 space-y-3">
+              {alerts.map((a) => (
+                <div key={a.id} className="flex items-center gap-4 rounded-xl bg-paper/[0.06] p-4">
+                  <div className="grid h-9 w-9 place-items-center rounded-lg bg-paper text-ink"><Bell size={15} /></div>
+                  <div className="flex-1">
+                    <b>{a.pair}</b>
+                    <p className="mt-1 text-xs text-paper/50">Target: {a.target}</p>
+                  </div>
+                  <button onClick={() => remove(a.id)} aria-label={`Remove ${a.pair} alert`} className="text-coral">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5">
+              <EmptyState icon={Bell} title="No alerts yet" hint="Add the rates that matter to your next money decision." />
+            </div>
+          )}
+        </Card>
       </div>
-
-      <p className="text-xs text-white/30 mt-6">
-        Alerts check the live rate while this page is open — push notifications aren't implemented in this MVP.
-      </p>
     </div>
   );
 }
