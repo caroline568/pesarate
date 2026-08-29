@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import RateTicker from "../components/RateTicker";
 import { nav } from "./nav";
+import logo from "../assets/pesarate-logo.png";
 
 export default function AppShell() {
   const location = useLocation();
@@ -16,9 +17,7 @@ export default function AppShell() {
         <header className="sticky top-0 z-30 border-b border-line bg-ink/85 backdrop-blur-xl">
           <div className="flex h-16 items-center justify-between px-5 sm:px-8">
             <div className="flex items-center gap-3">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-lime font-[family-name:var(--font-display)] font-semibold text-ink lg:hidden">
-                P
-              </span>
+              <img src={logo} alt="PesaRate" className="h-9 w-9 rounded-lg object-cover lg:hidden" />
               <div>
                 <p className="text-sm font-semibold">{title}</p>
                 <p className="hidden text-[10px] text-paper/40 sm:block">Financial intelligence workspace</p>
