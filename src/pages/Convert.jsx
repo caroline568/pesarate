@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowLeftRight, Save, ShieldCheck } from "lucide-react";
 import { useRates } from "../hooks/useRates";
-import { useLocalCollection } from "../hooks/useLocalCollection";
+import { useSavedConversions } from "../hooks/useSavedConversions";
 import { Card, CardEyebrow } from "../components/Card";
 import PageHeader from "../components/PageHeader";
 import { ErrorState } from "../components/DataState";
@@ -14,7 +14,7 @@ export default function Convert() {
   const [from, setFrom] = useState("KES");
   const [to, setTo] = useState("USD");
   const { rates, status, reload } = useRates(from);
-  const { add } = useLocalCollection("pesarate-saved", { limit: 10 });
+  const { add } = useSavedConversions();
 
   const rate = from === to ? 1 : rates?.[to];
   const result = rate ? amount * rate : null;

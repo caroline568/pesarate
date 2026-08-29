@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Bell, CalendarDays, CircleHelp, Plane, Save, TrendingDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useRates } from "../hooks/useRates";
-import { useLocalCollection } from "../hooks/useLocalCollection";
+import { useSavedConversions } from "../hooks/useSavedConversions";
 import { Card, CardEyebrow } from "../components/Card";
 import { LoadingGrid, ErrorState, EmptyState } from "../components/DataState";
 
@@ -12,7 +12,7 @@ export default function Dashboard() {
   const [amount, setAmount] = useState(250000);
   const [to, setTo] = useState("USD");
   const { rates, status, reload } = useRates("KES");
-  const { items: saved, add: addSaved } = useLocalCollection("pesarate-saved", { limit: 5 });
+  const { items: saved, add: addSaved, mode } = useSavedConversions();
 
   const rate = rates?.[to];
   const converted = rate ? amount * rate : null;
@@ -20,6 +20,7 @@ export default function Dashboard() {
   const saveConversion = () => {
     addSaved({ amount, to, from: "KES", rate, value: converted });
   };
+
 
   return (
     <div>
@@ -196,6 +197,11 @@ export default function Dashboard() {
             <div className="mt-4">
               <EmptyState icon={CalendarDays} title="No saved conversions yet" hint="Save conversions that matter to you." />
             </div>
+          )}
+          {mode === "local" && (
+            <p className="mt-3 text-[11px] text-paper/40">
+              Saved locally on this device. <Link to="/login" className="text-lime">Sign in</Link> to sync across devices.
+            </p>
           )}
         </Card>
       </section>

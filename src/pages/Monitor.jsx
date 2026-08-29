@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Bell, Plus, Trash2, TrendingUp } from "lucide-react";
-import { useLocalCollection } from "../hooks/useLocalCollection";
+import { useRateAlerts } from "../hooks/useRateAlerts";
+import { Link } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import { Card, CardEyebrow } from "../components/Card";
 import { EmptyState } from "../components/DataState";
@@ -8,7 +9,7 @@ import { EmptyState } from "../components/DataState";
 const PAIR_OPTIONS = ["USD/KES", "GBP/KES", "EUR/KES", "AED/KES"];
 
 export default function Monitor() {
-  const { items: alerts, add, remove } = useLocalCollection("pesarate-alerts");
+  const { items: alerts, add, remove, mode } = useRateAlerts();
   const [pair, setPair] = useState(PAIR_OPTIONS[0]);
   const [target, setTarget] = useState(130);
 
@@ -81,6 +82,11 @@ export default function Monitor() {
             <div className="mt-5">
               <EmptyState icon={Bell} title="No alerts yet" hint="Add the rates that matter to your next money decision." />
             </div>
+          )}
+          {mode === "local" && (
+            <p className="mt-3 text-[11px] text-paper/40">
+              Saved locally on this device. <Link to="/login" className="text-lime">Sign in</Link> to sync across devices.
+            </p>
           )}
         </Card>
       </div>

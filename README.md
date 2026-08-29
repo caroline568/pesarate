@@ -1,49 +1,68 @@
-# PesaRate — Financial Intelligence Workspace
+# PesaRate — Financial Intelligence Workspace (Phase 2: full-stack)
 
-PesaRate is a React + Vite app for understanding currency conversion in context. It's built
-around one question: **"How much is my money worth, and what does that actually mean?"**
+PesaRate helps people understand currency conversion in context, not just get a number:
+live mid-market rates, decision context around provider markups, a currency watchlist with
+target-rate alerts, a travel money planner, destination/currency exploration, and short
+practical explainers — now backed by real user accounts so saved conversions and alerts
+persist and sync across devices.
 
-A plain converter tells you a number. PesaRate wraps that number in the context a person
-actually needs before moving or spending money: the live mid-market rate, a watchlist with
-target-rate alerts, a travel budget planner, destination/currency exploration, and short,
-practical explainers on what rate movement means for real decisions.
+This is the Phase 2 extension of the original Phase 1 React prototype: the same frontend,
+now talking to a Flask + PostgreSQL API (`/backend`) for auth and persistence, per the
+"React Prototype → Full-Stack Product" architecture in the PesaRate pitch deck.
 
 ## Design direction
 
-The UI follows an "exchange bureau" concept rather than a generic SaaS dashboard: a dark
-ink background, banknote-inspired accent colours (marigold, coral, lime) used the way currency
-notes use colour-coding, ticket-style cards with a perforated/denomination motif, and a live
-departure-board-style rate ticker as the signature element. Type pairs a display serif
-(Fraunces) with Inter for UI text and JetBrains Mono for all rate/amount figures.
+An "exchange bureau" concept rather than a generic SaaS dashboard: dark ink background,
+banknote-inspired accent colours (marigold, coral, lime) used the way currency notes use
+colour-coding, ticket-style cards with a perforated/denomination motif, and a live
+departure-board-style rate ticker as the signature element. Fraunces (display) + Inter (UI)
++ JetBrains Mono (all rate/amount figures).
+
+## Running it locally
+
+**Backend** (see `backend/README.md` for full detail):
+```bash
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+flask db upgrade
+python run.py                 # http://localhost:5000
+```
+
+**Frontend**, in a second terminal:
+```bash
+cp .env.example .env          # VITE_API_URL, defaults to http://localhost:5000/api
+npm install
+npm run dev                    # http://localhost:5173
+```
+
+```bash
+npm run build     # production build to dist/
+npm run lint      # ESLint
+```
+
+## Auth & persistence model
+
+- Sign up / sign in issues a JWT (`Flask-JWT-Extended`), stored in `localStorage`.
+- Signed in: saved conversions and rate alerts are read/written through the Flask API,
+  scoped to the current user (`user_id` on every row; every route enforces ownership and
+  returns `404` — not `403` — for another user's record).
+- Signed out: the same features still work, falling back to `localStorage` only, so the
+  app is fully usable without an account. Both the Dashboard and Watchlist show a small
+  "Sign in to sync across devices" hint in that mode.
 
 ## Features
 
 - Live currency conversion (Dashboard quick-convert + full Convert page)
 - Decision context around rates and provider markups
-- Saved conversions, persisted to `localStorage`
-- Currency watchlist with target-rate alerts, persisted to `localStorage`
+- Saved conversions and a currency watchlist with target-rate alerts (see persistence model above)
 - Travel money planner with a suggested spending split
 - Destination/currency exploration with live weather context
 - Practical financial insights
 - Explicit loading, error (with retry), and empty states on every data-driven page
 
-## Setup
-
-```bash
-npm install
-npm run dev      # starts the Vite dev server
-```
-
-```bash
-npm run build     # production build to dist/
-npm run preview   # preview the production build
-npm run lint      # ESLint
-```
-
-Requires Node 18+. No API keys or environment variables are needed — every external API
-used is public and unauthenticated.
-
-## APIs used
+## APIs used (frontend)
 
 | API | Used for | Endpoint |
 |---|---|---|
@@ -52,34 +71,39 @@ used is public and unauthenticated.
 | [REST Countries](https://restcountries.com) | Country/currency metadata for Explore | `GET /v3.1/currency/{code}` |
 | [Open-Meteo](https://open-meteo.com) | Travel weather context | `GET /v1/forecast?latitude=&longitude=&current=` |
 
-All calls live in `src/api.js`, each with its own error handling so one failing source
-never breaks the rest of the page.
+See `backend/README.md` for the PesaRate API's own endpoints.
 
 ## Project structure
 
 ```
 src/
-  api.js               API calls
-  hooks/                useRates (loading/error/ready), useLocalCollection (saved data)
-  components/           Card, DataState (loading/error/empty), PageHeader, CurrencyField, RateTicker
-  layout/                AppShell, Sidebar, MobileNav
-  pages/                 One file per route
+  api.js                 External (public) API calls
+  api-client.js           Calls into the PesaRate Flask API
+  context/AuthContext.jsx  Auth state, JWT storage
+  hooks/                   useRates, useSavedConversions, useRateAlerts, useAuth
+  components/              Card, DataState, PageHeader, CurrencyField, RateTicker
+  layout/                  AppShell, Sidebar, MobileNav
+  pages/                   One file per route (incl. Login/Signup)
+backend/
+  app/                     Flask app factory, models, routes
+  migrations/               Alembic migrations
+  tests/manual_smoke_test.sh
 ```
 
 ## Known limitations
 
 - Frankfurter doesn't track KES, so historical trend charts are only available for
-  ECB-tracked currency pairs; `getHistoricalRange` returns `null` for unsupported pairs
-  rather than fabricating data.
-- Saved conversions and watchlist alerts are stored in `localStorage`, so they're local
-  to one browser and aren't shared across devices. This is by design for the Phase 1
-  React-only scope — Phase 2 replaces this with a Flask + PostgreSQL backend behind
-  user accounts (see `/backend`).
-- Rate alerts are stored but not actively evaluated against live rates yet (no push/email
-  notification); the Phase 2 backend is where alert-checking logic belongs.
-- Public APIs used here are unauthenticated and can be rate-limited under heavy use;
-  `useRates` surfaces this as a retryable error state rather than a silent failure.
+  ECB-tracked currency pairs.
+- Rate alerts are stored (and can be toggled active/inactive) but nothing yet evaluates
+  them against live rates to notify a user — see `backend/README.md`.
+- Public market-data APIs are unauthenticated and can be rate-limited under heavy use;
+  `useRates` surfaces this as a retryable error state rather than failing silently.
+- JWTs are valid for 7 days with no revocation list — acceptable for a course project,
+  not for a production deployment.
 
 ## Deployment
 
-Configured for Vercel via `vercel.json` (SPA rewrite to `index.html`).
+Frontend is configured for Vercel (`vercel.json`, SPA rewrite). Backend is a standard
+Flask app (`gunicorn run:app`) deployable anywhere that can reach a PostgreSQL database
+(Render, Railway, Supabase + any host, etc.) — set `DATABASE_URL`, `SECRET_KEY`,
+`JWT_SECRET_KEY`, and `CORS_ORIGINS` as environment variables there.
