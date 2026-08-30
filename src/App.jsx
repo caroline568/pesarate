@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import RequireAuth from "./components/RequireAuth";
 import AppShell from "./layout/AppShell";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -12,6 +13,7 @@ import Monitor from "./pages/Monitor";
 import Explore from "./pages/Explore";
 import CountryDetail from "./pages/CountryDetail";
 import News from "./pages/News";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
@@ -21,7 +23,13 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route element={<AppShell />}>
+          <Route
+            element={
+              <RequireAuth>
+                <AppShell />
+              </RequireAuth>
+            }
+          >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/money" element={<Convert />} />
             <Route path="/travel" element={<TravelMoney />} />
@@ -30,6 +38,7 @@ export default function App() {
             <Route path="/explore" element={<Explore />} />
             <Route path="/explore/:code" element={<CountryDetail />} />
             <Route path="/news" element={<News />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

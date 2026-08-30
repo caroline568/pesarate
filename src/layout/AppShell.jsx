@@ -1,13 +1,15 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { Search } from "lucide-react";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import RateTicker from "../components/RateTicker";
 import { nav } from "./nav";
 import logo from "../assets/pesarate-logo.png";
+import { useAuth } from "../hooks/useAuth";
 
 export default function AppShell() {
   const location = useLocation();
+  const { user } = useAuth();
   const title = nav.find(([path]) => location.pathname.startsWith(path))?.[1] || "Workspace";
 
   return (
@@ -27,7 +29,22 @@ export default function AppShell() {
               <button className="hidden items-center gap-2 rounded-full border border-line px-3 py-2 text-xs text-paper/60 sm:flex">
                 <Search size={14} /> Search
               </button>
-              <div className="rounded-full border border-line px-3 py-2 font-mono text-[10px] font-medium text-lime">LIVE</div>
+              <div className="hidden rounded-full border border-line px-3 py-2 font-mono text-[10px] font-medium text-lime sm:block">
+                LIVE
+              </div>
+              <Link
+                to="/profile"
+                aria-label="Your profile"
+                className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border-2 border-lime/40 bg-paper/10"
+              >
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-xs font-semibold text-lime">
+                    {(user?.name || user?.email || "?")[0]?.toUpperCase()}
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
           <RateTicker />

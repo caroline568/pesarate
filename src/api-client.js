@@ -17,11 +17,16 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
   const token = getToken();
   if (auth && token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let response;
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw new Error("Can't reach the PesaRate server. Is the backend running?");
+  }
 
   if (response.status === 204) return null;
 
@@ -35,7 +40,9 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
 export const authApi = {
   register: (email, password, name) => request("/auth/register", { method: "POST", body: { email, password, name }, auth: false }),
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password }, auth: false }),
+  google: (credential) => request("/auth/google", { method: "POST", body: { credential }, auth: false }),
   me: () => request("/auth/me"),
+  updateProfile: (payload) => request("/auth/me", { method: "PATCH", body: payload }),
 };
 
 export const conversionsApi = {

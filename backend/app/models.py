@@ -14,8 +14,15 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(255), nullable=False)
+    # Nullable: a user who signed up with Google has no local password.
+    password_hash = db.Column(db.String(255), nullable=True)
     name = db.Column(db.String(120), nullable=True)
+    # Small base64 data URI (client resizes/compresses before upload — see
+    # MAX_AVATAR_BYTES in routes/auth.py). Avoids standing up object storage
+    # for what's a tiny per-user image.
+    avatar = db.Column(db.Text, nullable=True)
+    auth_provider = db.Column(db.String(20), nullable=False, default="password")
+    google_sub = db.Column(db.String(255), unique=True, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=now)
 
     conversions = db.relationship(
@@ -29,10 +36,18 @@ class User(db.Model):
         self.password_hash = generate_password_hash(raw_password)
 
     def check_password(self, raw_password):
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, raw_password)
 
     def to_dict(self):
-        return {"id": self.id, "email": self.email, "name": self.name}
+        return {
+            "id": self.id,
+            "email": self.email,
+            "name": self.name,
+            "avatar": self.avatar,
+            "auth_provider": self.auth_provider,
+        }
 
 
 class SavedConversion(db.Model):

@@ -1,14 +1,17 @@
-import { RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { useRates } from "../hooks/useRates";
 import PageHeader from "../components/PageHeader";
-import { Card } from "../components/Card";
+import { Card, CardEyebrow } from "../components/Card";
 import { LoadingGrid, ErrorState } from "../components/DataState";
+import HistoricalChart from "../components/HistoricalChart";
+import { CHARTABLE_CURRENCIES } from "../config/chartable-currencies";
 
 const LIST = ["USD", "GBP", "EUR", "AED", "TZS", "UGX", "ZAR", "JPY"];
-const SPARK = [25, 34, 28, 45, 38, 53, 48, 60];
 
 export default function Rates() {
   const { rates, status, reload } = useRates("KES");
+  const [chartQuote, setChartQuote] = useState("USD");
 
   return (
     <div>
@@ -23,26 +26,43 @@ export default function Rates() {
         }
       />
 
+      <Card className="mb-5 p-5 sm:p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardEyebrow>Historical trend</CardEyebrow>
+            <h2 className="mt-1 font-semibold">Is it rising or falling?</h2>
+          </div>
+          <select
+            value={chartQuote}
+            onChange={(e) => setChartQuote(e.target.value)}
+            className="rounded-lg bg-paper px-2.5 py-2 text-xs font-bold text-ink outline-none"
+          >
+            {CHARTABLE_CURRENCIES.filter((c) => c !== "EUR").map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div className="mt-5">
+          <HistoricalChart base={chartQuote} quote="EUR" />
+        </div>
+        <p className="mt-3 text-[11px] text-paper/40">
+          Charted against EUR (our free historical source doesn't track KES) — still shows real movement, not a
+          placeholder.
+        </p>
+      </Card>
+
       {status === "error" && <ErrorState onRetry={reload} />}
       {status === "loading" && <LoadingGrid count={8} className="sm:grid-cols-2 xl:grid-cols-4" />}
 
       {status === "ready" && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {LIST.map((c, i) => (
+          {LIST.map((c) => (
             <Card key={c} className="p-5">
-              <div className="flex justify-between">
-                <b>KES/{c}</b>
-                {i % 3 === 1 ? <TrendingDown className="text-coral" size={16} /> : <TrendingUp className="text-lime" size={16} />}
-              </div>
+              <b>KES/{c}</b>
               <div className="mt-5 font-[family-name:var(--font-mono)] text-2xl font-semibold">
                 {rates[c] ? rates[c].toFixed(5) : "—"}
               </div>
               <p className="mt-2 text-xs text-paper/45">1 KES in {c}</p>
-              <div className="mt-5 flex h-8 items-end gap-1">
-                {SPARK.map((h, j) => (
-                  <span key={j} className="flex-1 rounded-t bg-marigold/40" style={{ height: `${h}%` }} />
-                ))}
-              </div>
             </Card>
           ))}
         </div>
