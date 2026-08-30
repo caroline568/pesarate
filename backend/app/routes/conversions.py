@@ -63,29 +63,6 @@ def _get_owned_conversion_or_404(conversion_id):
     return conversion
 
 
-@conversions_bp.patch("/<int:conversion_id>")
-@jwt_required()
-def update_conversion(conversion_id):
-    conversion = _get_owned_conversion_or_404(conversion_id)
-    if conversion is None:
-        return jsonify(error="Not found"), 404
-
-    data = request.get_json(silent=True) or {}
-    if "from_currency" in data:
-        conversion.from_currency = str(data["from_currency"]).upper()[:3]
-    if "to_currency" in data:
-        conversion.to_currency = str(data["to_currency"]).upper()[:3]
-    if "amount" in data:
-        conversion.amount = float(data["amount"])
-    if "rate" in data:
-        conversion.rate = float(data["rate"])
-    if "converted_value" in data:
-        conversion.converted_value = float(data["converted_value"])
-
-    db.session.commit()
-    return jsonify(conversion=conversion.to_dict())
-
-
 @conversions_bp.delete("/<int:conversion_id>")
 @jwt_required()
 def delete_conversion(conversion_id):
