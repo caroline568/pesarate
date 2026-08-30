@@ -17,10 +17,12 @@ def create_app(config_class=Config):
     from .routes.auth import auth_bp
     from .routes.conversions import conversions_bp
     from .routes.alerts import alerts_bp
+    from .routes.trips import trips_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(conversions_bp, url_prefix="/api/conversions")
     app.register_blueprint(alerts_bp, url_prefix="/api/alerts")
+    app.register_blueprint(trips_bp, url_prefix="/api/trips")
 
     @app.get("/api/health")
     def health():

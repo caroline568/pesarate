@@ -1,109 +1,106 @@
-# PesaRate — Financial Intelligence Workspace (Phase 2: full-stack)
+# PesaRate — Phase 2 rebuild
 
-PesaRate helps people understand currency conversion in context, not just get a number:
-live mid-market rates, decision context around provider markups, a currency watchlist with
-target-rate alerts, a travel money planner, destination/currency exploration, and short
-practical explainers — now backed by real user accounts so saved conversions and alerts
-persist and sync across devices.
+PesaRate is a full-stack currency and travel-money workspace designed to match the supplied PesaRate product mock: a compact light dashboard, deep-blue sidebar, green actions, live KES rates, saved conversions, trips, trends/news, alerts, and profile management.
 
-This is the Phase 2 extension of the original Phase 1 React prototype: the same frontend,
-now talking to a Flask + PostgreSQL API (`/backend`) for auth and persistence, per the
-"React Prototype → Full-Stack Product" architecture in the PesaRate pitch deck.
+## What is included
 
-## Design direction
+- **Landing / Sign in** — one tabbed experience for login and sign-up.
+- **Dashboard** — live KES rates from ExchangeRate-API, recent saved conversions, upcoming trips sorted by travel date, and active alerts.
+- **Convert** — live conversion, provider/channel selection, saved conversion CRUD, and edit support through `PATCH`.
+- **Trips** — full CRUD against `/api/trips`, live KES conversion, and countdown from `travel_date`.
+- **Trends & News** — historical chart logic combined with editorial financial context in a two-panel layout.
+- **Alerts** — backend `from_currency` / `to_currency` model, create/edit/delete, and active/paused toggle.
+- **Profile** — profile editing with avatar, account statistics, saved trips overview, logout, and account deletion.
 
-An "exchange bureau" concept rather than a generic SaaS dashboard: dark ink background,
-banknote-inspired accent colours (marigold, coral, lime) used the way currency notes use
-colour-coding, ticket-style cards with a perforated/denomination motif, and a live
-departure-board-style rate ticker as the signature element. Fraunces (display) + Inter (UI)
-+ JetBrains Mono (all rate/amount figures).
+The old Explore/Country Detail, Monitor, TravelMoney, Rates, News, Login and Signup pages are intentionally removed from the frontend route tree because they are replaced by the new experience.
 
-## Running it locally
+## Stack
 
-**Backend** (see `backend/README.md` for full detail):
+- React + Vite
+- Tailwind CSS
+- Flask
+- Flask-SQLAlchemy + Alembic/Flask-Migrate
+- JWT authentication
+- PostgreSQL/Supabase in production, SQLite fallback for local development
+- Recharts for historical trends
+
+## Run locally
+
+### Backend
+
 ```bash
 cd backend
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 flask db upgrade
-python run.py                 # http://localhost:5000
+python run.py
 ```
 
-**Frontend**, in a second terminal:
+Backend runs at `http://localhost:5000`.
+
+### Frontend
+
+In a second terminal:
+
 ```bash
-cp .env.example .env          # VITE_API_URL, defaults to http://localhost:5000/api
+cp .env.example .env
 npm install
-npm run dev                    # http://localhost:5173
+npm run dev
 ```
+
+Frontend runs at the Vite URL shown in the terminal, normally `http://localhost:5173`.
+
+Set `VITE_API_URL` when the Flask backend is deployed somewhere other than localhost.
+
+## Database migrations
+
+The latest migration adds `channel` to saved conversions. Run:
 
 ```bash
-npm run build     # production build to dist/
-npm run lint      # ESLint
+cd backend
+flask db upgrade
 ```
 
-## Auth & persistence model
+before testing the rebuilt Convert and Dashboard pages against an existing database.
 
-- Sign up / sign in issues a JWT (`Flask-JWT-Extended`), stored in `localStorage`.
-- Signed in: saved conversions and rate alerts are read/written through the Flask API,
-  scoped to the current user (`user_id` on every row; every route enforces ownership and
-  returns `404` — not `403` — for another user's record).
-- Signed out: the same features still work, falling back to `localStorage` only, so the
-  app is fully usable without an account. Both the Dashboard and Watchlist show a small
-  "Sign in to sync across devices" hint in that mode.
+## API endpoints used by the rebuilt UI
 
-## Features
+### Auth
 
-- Live currency conversion (Dashboard quick-convert + full Convert page)
-- Decision context around rates and provider markups
-- Saved conversions and a currency watchlist with target-rate alerts (see persistence model above)
-- Travel money planner with a suggested spending split
-- Destination/currency exploration with live weather context
-- Practical financial insights
-- Explicit loading, error (with retry), and empty states on every data-driven page
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me`
+- `DELETE /api/auth/me`
 
-## APIs used (frontend)
+### Conversions
 
-| API | Used for | Endpoint |
-|---|---|---|
-| [open.er-api.com](https://www.exchangerate-api.com/docs/free) | Live mid-market rates | `GET /v6/latest/{base}` |
-| [Frankfurter](https://frankfurter.dev) | Historical rate ranges (ECB-tracked currencies) | `GET /v1/{start}..{end}?base=&symbols=` |
-| [REST Countries](https://restcountries.com) | Country/currency metadata for Explore | `GET /v3.1/currency/{code}` |
-| [Open-Meteo](https://open-meteo.com) | Travel weather context | `GET /v1/forecast?latitude=&longitude=&current=` |
+- `GET /api/conversions`
+- `POST /api/conversions`
+- `PATCH /api/conversions/<id>`
+- `DELETE /api/conversions/<id>`
 
-See `backend/README.md` for the PesaRate API's own endpoints.
+### Trips
 
-## Project structure
+- `GET /api/trips`
+- `POST /api/trips`
+- `PATCH /api/trips/<id>`
+- `DELETE /api/trips/<id>`
 
-```
-src/
-  api.js                 External (public) API calls
-  api-client.js           Calls into the PesaRate Flask API
-  context/AuthContext.jsx  Auth state, JWT storage
-  hooks/                   useRates, useSavedConversions, useRateAlerts, useAuth
-  components/              Card, DataState, PageHeader, CurrencyField, RateTicker
-  layout/                  AppShell, Sidebar, MobileNav
-  pages/                   One file per route (incl. Login/Signup)
-backend/
-  app/                     Flask app factory, models, routes
-  migrations/               Alembic migrations
-  tests/manual_smoke_test.sh
-```
+### Alerts
 
-## Known limitations
+- `GET /api/alerts`
+- `POST /api/alerts`
+- `PATCH /api/alerts/<id>`
+- `DELETE /api/alerts/<id>`
 
-- Frankfurter doesn't track KES, so historical trend charts are only available for
-  ECB-tracked currency pairs.
-- Rate alerts are stored (and can be toggled active/inactive) but nothing yet evaluates
-  them against live rates to notify a user — see `backend/README.md`.
-- Public market-data APIs are unauthenticated and can be rate-limited under heavy use;
-  `useRates` surfaces this as a retryable error state rather than failing silently.
-- JWTs are valid for 7 days with no revocation list — acceptable for a course project,
-  not for a production deployment.
+## External market data
+
+- ExchangeRate-API free endpoint for live exchange rates.
+- Frankfurter for historical charts. Historical coverage is limited to currencies tracked by its ECB data source, so the UI does not fabricate KES historical data.
 
 ## Deployment
 
-Frontend is configured for Vercel (`vercel.json`, SPA rewrite). Backend is a standard
-Flask app (`gunicorn run:app`) deployable anywhere that can reach a PostgreSQL database
-(Render, Railway, Supabase + any host, etc.) — set `DATABASE_URL`, `SECRET_KEY`,
-`JWT_SECRET_KEY`, and `CORS_ORIGINS` as environment variables there.
+The frontend remains Vercel-friendly through `vercel.json`. Configure `VITE_API_URL` to point to the deployed Flask API. Configure the Flask backend with `DATABASE_URL`, `SECRET_KEY`, `JWT_SECRET_KEY`, and `CORS_ORIGINS`.

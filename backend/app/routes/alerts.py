@@ -56,6 +56,10 @@ def update_alert(alert_id):
         return jsonify(error="Not found"), 404
 
     data = request.get_json(silent=True) or {}
+    if "from_currency" in data:
+        alert.from_currency = str(data["from_currency"]).upper()[:3]
+    if "to_currency" in data:
+        alert.to_currency = str(data["to_currency"]).upper()[:3]
     if "target_rate" in data:
         alert.target_rate = float(data["target_rate"])
     if "active" in data:

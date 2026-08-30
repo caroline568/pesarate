@@ -1,17 +1,3 @@
-/** Base "ticket" card — the recurring visual unit of the bureau aesthetic. */
-export function Card({ className = "", children, denom }) {
-  return (
-    <div className={`ticket relative overflow-hidden ${className}`}>
-      {denom && (
-        <span className="denom pointer-events-none absolute -right-2 -top-4 text-7xl">{denom}</span>
-      )}
-      {children}
-    </div>
-  );
-}
-
-export function CardEyebrow({ children }) {
-  return <p className="font-mono text-[11px] uppercase tracking-[.16em] text-paper/45">{children}</p>;
-}
-
+export function Card({ className = "", children }) { return <section className={`rounded-xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04)] ${className}`}>{children}</section>; }
+export function CardEyebrow({ children }) { return <p className="text-[10px] font-semibold uppercase tracking-[.12em] text-slate-400">{children}</p>; }
 export default Card;

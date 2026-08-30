@@ -1,11 +1,9 @@
-import { ArrowLeftRight, Bell, BookOpen, Globe2, LayoutDashboard, Plane, TrendingUp } from "lucide-react";
-
+import { ArrowLeftRight, Bell, LayoutDashboard, Plane, TrendingUp, UserRound } from "lucide-react";
 export const nav = [
-  ["/dashboard", "Overview", LayoutDashboard],
+  ["/dashboard", "Dashboard", LayoutDashboard],
   ["/money", "Convert", ArrowLeftRight],
-  ["/travel", "Travel money", Plane],
-  ["/rates", "Rates", TrendingUp],
-  ["/monitor", "Watchlist", Bell],
-  ["/explore", "Explore", Globe2],
-  ["/news", "Insights", BookOpen],
+  ["/trips", "Trips", Plane],
+  ["/trends", "Trends & News", TrendingUp],
+  ["/alerts", "Alerts", Bell],
+  ["/profile", "Profile", UserRound],
 ];

@@ -124,3 +124,12 @@ def update_me():
 
     db.session.commit()
     return jsonify(user=user.to_dict())
+
+
+@auth_bp.delete("/me")
+@jwt_required()
+def delete_me():
+    user = User.query.get_or_404(int(get_jwt_identity()))
+    db.session.delete(user)
+    db.session.commit()
+    return "", 204

@@ -1,210 +1,22 @@
+import { useEffect, useMemo, useState } from "react";
+import { Bell, ChevronRight, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Bell, CalendarDays, CircleHelp, Plane, Save, TrendingDown, TrendingUp } from "lucide-react";
-import { useState } from "react";
 import { useRates } from "../hooks/useRates";
 import { useSavedConversions } from "../hooks/useSavedConversions";
-import { Card, CardEyebrow } from "../components/Card";
-import { LoadingGrid, ErrorState, EmptyState } from "../components/DataState";
+import { useRateAlerts } from "../hooks/useRateAlerts";
+import { tripsApi } from "../api-client";
+import { Card } from "../components/Card";
+import { ErrorState, LoadingGrid } from "../components/DataState";
 
-const PAIRS = ["USD", "GBP", "EUR", "AED"];
-
-export default function Dashboard() {
-  const [amount, setAmount] = useState(250000);
-  const [to, setTo] = useState("USD");
-  const { rates, status, reload } = useRates("KES");
-  const { items: saved, add: addSaved, mode } = useSavedConversions();
-
-  const rate = rates?.[to];
-  const converted = rate ? amount * rate : null;
-
-  const saveConversion = () => {
-    addSaved({ amount, to, from: "KES", rate, value: converted });
-  };
-
-
-  return (
-    <div>
-      <section className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <CardEyebrow>Good morning</CardEyebrow>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-medium sm:text-4xl">
-            Your money, understood.
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-paper/55">
-            The answer is the rate. The value is the context around it.
-          </p>
-        </div>
-        <Link to="/money" className="text-sm font-medium text-lime">
-          Open full converter <ArrowRight className="inline ml-1" size={14} />
-        </Link>
-      </section>
-
-      {status === "error" ? (
-        <ErrorState message="Live rates didn't load." onRetry={reload} />
-      ) : (
-        <section className="grid gap-5 xl:grid-cols-[1.5fr_.8fr]">
-          <Card className="overflow-hidden" denom="₮">
-            {status === "loading" ? (
-              <div className="p-6"><LoadingGrid count={1} /></div>
-            ) : (
-              <div className="p-5 sm:p-7">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardEyebrow>Live conversion</CardEyebrow>
-                    <h2 className="mt-1 text-lg font-semibold">What is my money worth?</h2>
-                  </div>
-                  <span className="rounded-full bg-marigold/15 px-3 py-1.5 font-mono text-[10px] font-semibold text-marigold">
-                    MID-MARKET
-                  </span>
-                </div>
-
-                <div className="mt-7 grid items-center gap-3 md:grid-cols-[1fr_60px_1fr]">
-                  <div className="rounded-2xl bg-paper/[0.06] p-4">
-                    <p className="text-xs text-paper/45">You have</p>
-                    <div className="mt-2 flex items-center gap-3">
-                      <b className="rounded-lg bg-paper px-2.5 py-2 text-xs text-ink">KES</b>
-                      <input
-                        value={amount}
-                        onChange={(e) => setAmount(Number(e.target.value) || 0)}
-                        type="number"
-                        className="w-full bg-transparent font-[family-name:var(--font-mono)] text-2xl font-semibold outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-lime text-ink">→</div>
-                  <div className="rounded-2xl bg-paper/[0.06] p-4">
-                    <p className="text-xs text-paper/45">You receive</p>
-                    <div className="mt-2 flex items-center gap-3">
-                      <select
-                        value={to}
-                        onChange={(e) => setTo(e.target.value)}
-                        className="rounded-lg bg-paper px-2.5 py-2 text-xs font-bold text-ink outline-none"
-                      >
-                        {PAIRS.map((x) => <option key={x}>{x}</option>)}
-                      </select>
-                      <b className="font-[family-name:var(--font-mono)] text-2xl">
-                        {converted ? converted.toLocaleString(undefined, { maximumFractionDigits: 2 }) : "—"}
-                      </b>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 rounded-2xl bg-ink p-5">
-                  <div className="flex gap-4">
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[.16em] text-paper/40">What this means</p>
-                      <p className="mt-2 text-sm leading-relaxed text-paper/70">
-                        Your conversion uses the live mid-market rate. Provider fees or markups can
-                        reduce the amount you actually receive.
-                      </p>
-                    </div>
-                    <CircleHelp size={18} className="shrink-0 text-lime" />
-                  </div>
-                  <div className="mt-5 flex flex-wrap gap-3 text-xs">
-                    <span className="rounded-lg bg-paper/10 px-3 py-2 font-mono">
-                      1 KES ≈ {rate ? rate.toFixed(5) : "—"} {to}
-                    </span>
-                    <button
-                      onClick={saveConversion}
-                      className="inline-flex items-center gap-2 rounded-lg bg-lime px-3 py-2 font-semibold text-ink"
-                    >
-                      <Save size={14} /> Save conversion
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          <Card className="p-5 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardEyebrow>Decision context</CardEyebrow>
-                <h2 className="mt-1 text-lg font-semibold">Before you exchange</h2>
-              </div>
-              <Bell size={18} className="text-lime" />
-            </div>
-            <div className="mt-6 space-y-4">
-              <div className="rounded-xl bg-paper/[0.06] p-4">
-                <p className="text-xs text-paper/45">Rate signal</p>
-                <div className="mt-2 flex items-center gap-2 font-semibold">
-                  <TrendingUp size={17} className="text-lime" /> Monitor the pair before a large transfer
-                </div>
-                <p className="mt-2 text-xs text-paper/50">
-                  Use Watchlist to set a target rate and get a decision point.
-                </p>
-              </div>
-              <div className="rounded-xl bg-paper/[0.06] p-4">
-                <p className="text-xs text-paper/45">Travel</p>
-                <div className="mt-2 flex items-center gap-2 font-semibold">
-                  <Plane size={17} /> Planning a trip?
-                </div>
-                <Link to="/travel" className="mt-2 inline-block text-xs text-lime">
-                  Build a travel money plan →
-                </Link>
-              </div>
-              <div className="rounded-xl border border-dashed border-line p-4">
-                <p className="text-xs text-paper/45">Tip</p>
-                <p className="mt-1 text-sm font-medium">Compare the amount you receive, not just the advertised fee.</p>
-              </div>
-            </div>
-          </Card>
-        </section>
-      )}
-
-      <section className="mt-5 grid gap-5 lg:grid-cols-2">
-        <Card className="p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardEyebrow>Watchlist</CardEyebrow>
-              <h2 className="mt-1 font-semibold">Important currencies</h2>
-            </div>
-            <Link to="/monitor" className="text-xs text-lime">Manage →</Link>
-          </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {PAIRS.map((x, i) => (
-              <div key={x} className="flex items-center justify-between rounded-xl border border-line p-4">
-                <div>
-                  <b>KES/{x}</b>
-                  <p className="mt-1 text-[11px] text-paper/40">Live market pair</p>
-                </div>
-                {i % 2 ? <TrendingDown size={16} className="text-coral" /> : <TrendingUp size={16} className="text-lime" />}
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardEyebrow>Saved conversions</CardEyebrow>
-              <h2 className="mt-1 font-semibold">Your important numbers</h2>
-            </div>
-            <CalendarDays size={18} className="text-lime" />
-          </div>
-          {saved.length ? (
-            <div className="mt-4 space-y-2">
-              {saved.map((x) => (
-                <div key={x.id} className="flex justify-between rounded-xl bg-paper/[0.06] p-3 text-sm">
-                  <span>KES {x.amount.toLocaleString()} → {x.to}</span>
-                  <b className="font-[family-name:var(--font-mono)]">
-                    {x.value?.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                  </b>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="mt-4">
-              <EmptyState icon={CalendarDays} title="No saved conversions yet" hint="Save conversions that matter to you." />
-            </div>
-          )}
-          {mode === "local" && (
-            <p className="mt-3 text-[11px] text-paper/40">
-              Saved locally on this device. <Link to="/login" className="text-lime">Sign in</Link> to sync across devices.
-            </p>
-          )}
-        </Card>
-      </section>
-    </div>
-  );
-}
+const RATES=["USD","GBP","EUR","AED"]; const flags={USD:"🇺🇸",GBP:"🇬🇧",EUR:"🇪🇺",AED:"🇦🇪"};
+function MiniLine({positive=true}){return <svg viewBox="0 0 90 32" className="h-9 w-20"><polyline fill="none" stroke={positive?"#55c94b":"#ed7180"} strokeWidth="1.7" points={positive?"0,24 8,22 15,25 23,16 31,18 40,11 49,15 58,7 66,10 75,4 90,8":"0,8 9,13 17,10 26,19 34,14 43,25 52,19 60,23 69,15 79,21 90,17"}/></svg>}
+function Countdown({date}){const [days,setDays]=useState(0);useEffect(()=>{const tick=()=>setDays(Math.max(0,Math.ceil((new Date(`${date}T00:00:00`)-new Date())/86400000)));tick();const id=setInterval(tick,3600000);return()=>clearInterval(id)},[date]);return <span>{days===0?"Today":`${days} day${days===1?"":"s"}`}</span>}
+export default function Dashboard(){const {rates,status,reload}=useRates("KES");const {items:conversions,status:convStatus}=useSavedConversions();const {items:alerts}=useRateAlerts();const [trips,setTrips]=useState([]);useEffect(()=>{tripsApi.list().then(d=>setTrips(d.trips||[])).catch(()=>{})},[]);const upcoming=useMemo(()=>trips.filter(t=>new Date(`${t.travel_date}T23:59:59`)>new Date()).sort((a,b)=>a.travel_date.localeCompare(b.travel_date)).slice(0,3),[trips]);return <div>
+  <div className="mb-4"><h1 className="text-[16px] font-bold">Kenyan Shilling (KES) Overview</h1><p className="mt-0.5 text-[10px] text-slate-400">Live mid-market rates and your money activity.</p></div>
+  {status==="error"&&<ErrorState message="Live rates could not be loaded." onRetry={reload}/>} {status==="loading"&&<LoadingGrid count={4} className="xl:grid-cols-4"/>}
+  {status==="ready"&&<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{RATES.map((c,i)=><Card key={c} className="p-4"><div className="flex items-start justify-between"><div><div className="flex items-center gap-2"><span className="text-lg">{flags[c]}</span><span className="text-xs font-bold">{c}</span></div><p className="mt-0.5 text-[9px] text-slate-400">{c==="USD"?"US Dollar":c==="GBP"?"British Pound":c==="EUR"?"Euro":"UAE Dirham"}</p></div><MiniLine positive={i%3!==0}/></div><div className="mt-3 text-[24px] font-bold tracking-tight">{rates?.[c]?.toFixed(2)||"—"}</div><p className="mt-1 text-[9px] font-semibold text-[#55b965]">{rates?.[c]?"LIVE":"—"}</p></Card>)}</div>}
+  <div className="mt-3 grid gap-3 xl:grid-cols-[.92fr_1.45fr_.85fr]"><Card className="p-4"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold">Today's Snapshot</p><p className="mt-1 text-[9px] text-slate-400">The Kenyan Shilling is moving against major currencies.</p></div><TrendingUp className="text-[#55c94b]" size={18}/></div><div className="mt-5 space-y-3">{RATES.map((c,i)=><div key={c} className="flex items-center justify-between text-[10px]"><span className="font-semibold">{flags[c]} {c}</span><span className={i%3===0?"text-red-400":"text-[#55b965]"}>{rates?.[c]?"LIVE":"—"}</span></div>)}</div></Card>
+  <Card className="overflow-hidden"><div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><p className="text-[10px] font-bold">Recent Conversions</p><p className="text-[9px] text-slate-400">Your latest saved numbers</p></div><Link to="/money" className="text-[9px] font-semibold text-[#43b34d]">View all rates →</Link></div>{convStatus==="loading"?<div className="p-4 text-xs text-slate-400">Loading…</div>:<div className="overflow-x-auto"><table className="w-full text-left text-[9px]"><thead className="bg-slate-50 text-slate-400"><tr><th className="px-4 py-2">From</th><th>To</th><th>Amount</th><th>Channel</th><th>Converted</th><th>Date</th></tr></thead><tbody>{conversions.slice(0,5).map(c=><tr key={c.id} className="border-t border-slate-100"><td className="px-4 py-2">{c.from_currency}</td><td>{c.to_currency}</td><td>{Number(c.amount).toLocaleString()}</td><td>{c.channel||"—"}</td><td className="font-semibold">{Number(c.converted_value).toLocaleString(undefined,{maximumFractionDigits:2})}</td><td>{c.created_at?new Date(c.created_at).toLocaleDateString(undefined,{day:"2-digit",month:"short"}):"—"}</td></tr>)}{!conversions.length&&<tr><td colSpan="6" className="px-4 py-7 text-center text-slate-400">No saved conversions yet.</td></tr>}</tbody></table></div>}</Card>
+  <Card className="p-4"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold">Upcoming Trips</p><p className="mt-1 text-[9px] text-slate-400">Plan ahead</p></div><Link to="/trips" className="text-[9px] text-[#43b34d]">View all →</Link></div><div className="mt-4 space-y-3">{upcoming.map(t=><div key={t.id} className="flex items-center justify-between rounded-lg bg-slate-50 p-2.5"><div className="min-w-0"><p className="truncate text-[10px] font-semibold">{t.destination}</p><p className="mt-0.5 text-[8px] text-slate-400">{t.days} days · {t.target_currency}</p></div><div className="text-right text-[9px]"><p className="font-semibold text-[#43b34d]"><Countdown date={t.travel_date}/></p><p className="text-slate-400">KES {Number(t.budget_kes).toLocaleString()}</p></div></div>)}{!upcoming.length&&<p className="py-6 text-center text-[9px] text-slate-400">No upcoming trips.</p>}</div></Card></div>
+  <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_.9fr]"><Card className="p-4"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold">Alerts Feed</p><p className="mt-1 text-[9px] text-slate-400">Your active rate watchlist</p></div><Link to="/alerts" className="text-[9px] text-[#43b34d]">Manage →</Link></div><div className="mt-3 space-y-2">{alerts.filter(a=>a.active).slice(0,3).map(a=><div key={a.id} className="flex items-center gap-2 rounded-lg border border-slate-100 p-2.5"><Bell size={13} className="text-red-400"/><div className="text-[9px]"><b>{a.from_currency}/{a.to_currency}</b><span className="ml-2 text-slate-400">Target {a.target_rate}</span></div></div>)}{!alerts.filter(a=>a.active).length&&<p className="py-4 text-center text-[9px] text-slate-400">No active alerts.</p>}</div></Card><Card className="flex items-center justify-between p-4"><div><p className="text-[10px] font-bold">Make a smarter decision</p><p className="mt-1 max-w-md text-[9px] leading-4 text-slate-400">Compare rates, plan your trip, and set alerts before you move your money.</p></div><Link to="/trends" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#55c94b] text-white"><ChevronRight size={15}/></Link></Card></div>
+</div>}

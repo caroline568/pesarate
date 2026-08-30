@@ -49,6 +49,7 @@ def create_conversion():
         amount=float(data["amount"]),
         rate=float(data["rate"]),
         converted_value=float(data["converted_value"]),
+        channel=(str(data["channel"]).strip()[:40] if data.get("channel") else None),
     )
     db.session.add(conversion)
     db.session.commit()
@@ -61,6 +62,26 @@ def _get_owned_conversion_or_404(conversion_id):
         # 404, not 403 — don't reveal that another user's record exists.
         return None
     return conversion
+
+
+@conversions_bp.patch("/<int:conversion_id>")
+@jwt_required()
+def update_conversion(conversion_id):
+    conversion = _get_owned_conversion_or_404(conversion_id)
+    if conversion is None:
+        return jsonify(error="Not found"), 404
+
+    data = request.get_json(silent=True) or {}
+    for field in ["from_currency", "to_currency"]:
+        if field in data:
+            setattr(conversion, field, str(data[field]).upper()[:3])
+    if "channel" in data:
+        conversion.channel = str(data["channel"]).strip()[:40] if data["channel"] else None
+    for field in ["amount", "rate", "converted_value"]:
+        if field in data:
+            setattr(conversion, field, float(data[field]))
+    db.session.commit()
+    return jsonify(conversion=conversion.to_dict())
 
 
 @conversions_bp.delete("/<int:conversion_id>")

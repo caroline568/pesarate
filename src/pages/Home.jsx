@@ -1,60 +1,19 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, ArrowLeftRight, Plane, TrendingUp, Sparkles } from "lucide-react";
-import RateTicker from "../components/RateTicker";
+import { useEffect, useState } from "react";
+import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import logo from "../assets/pesarate-logo.png";
 
-const pillars = [
-  [ArrowLeftRight, "Convert", "Get the number, then understand it."],
-  [TrendingUp, "Understand", "See movements, trends and context."],
-  [Plane, "Travel money", "Turn a trip budget into a real spending plan."],
-];
-
-export default function Home() {
-  return (
-    <main className="bureau-bg min-h-screen bg-ink text-paper">
-      <RateTicker />
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
-        <nav className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="PesaRate" className="h-10 w-10 rounded-xl object-cover" />
-            <b className="font-[family-name:var(--font-display)] text-lg">PesaRate</b>
-          </div>
-          <Link to="/signup" className="text-sm font-medium text-paper/80 hover:text-paper">
-            Open workspace <ArrowRight className="inline ml-1" size={15} />
-          </Link>
-        </nav>
-
-        <section className="max-w-4xl pt-20 sm:pt-28">
-          <div className="inline-flex items-center gap-2 rounded-full border border-line bg-paper/[0.06] px-3 py-2 text-xs font-medium text-paper/70">
-            <Sparkles size={14} className="text-marigold" /> Financial intelligence for moving money
-          </div>
-          <h1 className="mt-7 font-[family-name:var(--font-display)] text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">
-            Know what your money is worth.
-            <br />
-            <span className="text-paper/40">Know what it means.</span>
-          </h1>
-          <p className="mt-7 max-w-2xl text-base leading-relaxed text-paper/60 sm:text-lg">
-            PesaRate helps you convert currencies, understand rate movements, track important
-            conversions, plan travel money, and make better decisions before you move or spend.
-          </p>
-          <Link
-            to="/signup"
-            className="mt-9 inline-flex items-center gap-2 rounded-full bg-lime px-6 py-3.5 text-sm font-semibold text-ink shadow-[0_16px_40px_rgba(198,241,53,.22)]"
-          >
-            Enter PesaRate <ArrowRight size={16} />
-          </Link>
-        </section>
-
-        <section className="mt-24 grid gap-4 pb-16 sm:grid-cols-3">
-          {pillars.map(([Icon, title, desc]) => (
-            <div key={title} className="ticket p-5">
-              <Icon size={20} className="text-marigold" />
-              <h3 className="mt-5 font-semibold">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-paper/55">{desc}</p>
-            </div>
-          ))}
-        </section>
-      </div>
-    </main>
-  );
+export default function Home({mode="login"}){
+  const [params]=useSearchParams(); const [tab,setTab]=useState(params.get("mode")||mode); const nav=useNavigate(); const {login,register,status}=useAuth();
+  const [name,setName]=useState(""); const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [show,setShow]=useState(false); const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
+  useEffect(()=>{const m=params.get("mode"); if(m) setTab(m);},[params]);
+  useEffect(()=>{if(status==="signed-in") nav("/dashboard",{replace:true});},[status,nav]);
+  const switchTab=(next)=>{setTab(next);setError("");nav(next==="login"?"/login":"/signup",{replace:true});};
+  const submit=async(e)=>{e.preventDefault();setBusy(true);setError("");try{if(tab==="login") await login(email,password);else await register(email,password,name);nav("/dashboard",{replace:true});}catch(err){setError(err.message);setBusy(false)}};
+  return <main className="auth-bg min-h-screen p-4 sm:p-6"><div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1320px] items-center"><div className="grid w-full overflow-hidden rounded-2xl bg-white/5 shadow-2xl lg:grid-cols-[1.12fr_.88fr]">
+    <section className="relative hidden min-h-[680px] flex-col justify-between p-10 text-white lg:flex"><div className="flex items-center gap-2"><img src={logo} alt="PesaRate" className="h-9 w-9 rounded-lg"/><b className="text-xl">Pesa<span className="text-[#55c94b]">Rate</span></b></div><div className="max-w-md"><p className="text-4xl font-extrabold leading-[1.08] tracking-tight">Know the value<br/>of your money.</p><p className="mt-4 max-w-sm text-sm leading-6 text-white/70">Plan better. Spend smarter.<br/>Travel with confidence.</p><div className="mt-7 space-y-3 text-xs text-white/85"><div>◉ &nbsp;Real-time exchange rates</div><div>◉ &nbsp;Best remittance channels</div><div>◉ &nbsp;Smart trip planning</div></div></div><p className="text-[9px] text-white/45">© 2026 PesaRate. All rights reserved.</p></section>
+    <section className="flex min-h-[680px] items-center justify-center bg-white p-5 sm:p-10"><div className="w-full max-w-[390px]"><div className="mb-7 flex justify-center lg:hidden"><img src={logo} alt="PesaRate" className="h-10 w-10"/></div><div className="text-center"><h1 className="text-xl font-extrabold text-slate-900">Welcome to PesaRate</h1><p className="mt-1 text-xs text-slate-400">Sign in to continue to your account</p></div><div className="mt-6 grid grid-cols-2 border-b border-slate-200"><button onClick={()=>switchTab("login")} className={`py-3 text-xs font-semibold ${tab==="login"?"border-b-2 border-[#55c94b] text-slate-900":"text-slate-400"}`}>Login</button><button onClick={()=>switchTab("signup")} className={`py-3 text-xs font-semibold ${tab==="signup"?"border-b-2 border-[#55c94b] text-slate-900":"text-slate-400"}`}>Sign Up</button></div>
+    <form onSubmit={submit} className="mt-7 space-y-4">{tab==="signup"&&<label className="block"><span className="text-[10px] font-semibold text-slate-500">Full name</span><div className="mt-1 flex items-center rounded-lg border border-slate-200 px-3"><UserRound size={14} className="text-slate-400"/><input required value={name} onChange={e=>setName(e.target.value)} className="w-full p-3 text-xs outline-none" placeholder="Your name"/></div></label>}<label className="block"><span className="text-[10px] font-semibold text-slate-500">Email address</span><div className="mt-1 flex items-center rounded-lg border border-slate-200 px-3"><Mail size={14} className="text-slate-400"/><input required type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full p-3 text-xs outline-none" placeholder="Enter your email"/></div></label><label className="block"><span className="text-[10px] font-semibold text-slate-500">Password</span><div className="mt-1 flex items-center rounded-lg border border-slate-200 px-3"><LockKeyhole size={14} className="text-slate-400"/><input required minLength={8} type={show?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} className="w-full p-3 text-xs outline-none" placeholder="Enter your password"/><button type="button" onClick={()=>setShow(!show)} className="text-slate-400">{show?<EyeOff size={14}/>:<Eye size={14}/>}</button></div></label>{tab==="login"&&<div className="text-right"><button type="button" className="text-[10px] text-[#3fb84a]">Forgot password?</button></div>}{error&&<p className="rounded-lg bg-red-50 p-2 text-xs text-red-600">{error}</p>}<button disabled={busy} className="w-full rounded-lg bg-[#55c94b] py-3 text-xs font-bold text-white disabled:opacity-60">{busy?(tab==="login"?"Logging in…":"Creating account…"):(tab==="login"?"Login":"Create Account")}</button></form><p className="mt-6 text-center text-[10px] text-slate-400">{tab==="login"?<>Don't have an account? <button onClick={()=>switchTab("signup")} className="font-semibold text-[#3fb84a]">Sign up</button></>:<>Already have an account? <button onClick={()=>switchTab("login")} className="font-semibold text-[#3fb84a]">Login</button></>}</p><p className="mt-8 text-center text-[9px] text-slate-300">By continuing, you agree to PesaRate's terms and privacy policy.</p></div></section>
+  </div></div></main>
 }
