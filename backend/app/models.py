@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -17,6 +18,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=True)
     name = db.Column(db.String(120), nullable=True)
     avatar = db.Column(db.Text, nullable=True)
+    use_cases = db.Column(db.Text, nullable=True)
     auth_provider = db.Column(db.String(20), nullable=False, default="password")
     google_sub = db.Column(db.String(255), unique=True, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=now)
@@ -57,6 +59,7 @@ class User(db.Model):
             "email": self.email,
             "name": self.name,
             "avatar": self.avatar,
+            "use_cases": json.loads(self.use_cases or "[]"),
             "auth_provider": self.auth_provider,
             "created_at": (
                 self.created_at.isoformat()

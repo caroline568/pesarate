@@ -31,7 +31,22 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
+    # Parse CORS origins: can be comma-separated string. Include Vite's fallback
+    # port because it moves to 5174 when 5173 is already in use.
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.environ.get(
+            "CORS_ORIGINS", "http://localhost:5173,http://localhost:5174"
+        ).split(",")
+    ]
 
     # Used to verify Google Sign-In ID tokens server-side.
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+
+    # Log CORS configuration for debugging
+    @classmethod
+    def log_config(cls):
+        """Print current config for debugging; useful in logs to verify env vars were loaded"""
+        print(f"CORS_ORIGINS: {cls.CORS_ORIGINS}")
+        print(f"DATABASE_URL: {'postgresql' if 'postgresql' in cls.SQLALCHEMY_DATABASE_URI else 'sqlite'}")
+        print(f"JWT_SECRET_KEY: {'set' if cls.JWT_SECRET_KEY != 'dev-jwt-secret' else 'using dev default'}")

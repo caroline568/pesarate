@@ -8,6 +8,10 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # Log configuration on startup (useful for debugging production deployments)
+    app.logger.info(f"CORS_ORIGINS: {app.config['CORS_ORIGINS']}")
+    app.logger.info(f"DATABASE: {'PostgreSQL' if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI'] else 'SQLite'}")
+
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)

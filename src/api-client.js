@@ -1,10 +1,29 @@
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const TOKEN_KEY = "pesarate-token";
+const REMEMBER_KEY = "pesarate-remember";
 
-export function getToken() { return localStorage.getItem(TOKEN_KEY); }
-export function setToken(token) {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+export function getRememberMe() {
+  return localStorage.getItem(REMEMBER_KEY) === "true";
+}
+
+export function getToken() {
+  const remember = getRememberMe();
+  const activeStorage = remember ? localStorage : sessionStorage;
+  return activeStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token, remember = false) {
+  localStorage.setItem(REMEMBER_KEY, String(Boolean(remember)));
+  const activeStorage = remember ? localStorage : sessionStorage;
+  const otherStorage = remember ? sessionStorage : localStorage;
+
+  if (token) {
+    activeStorage.setItem(TOKEN_KEY, token);
+    otherStorage.removeItem(TOKEN_KEY);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+  }
 }
 
 async function request(path, { method = "GET", body, auth = true } = {}) {
@@ -14,7 +33,10 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
   let response;
   try {
     response = await fetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
-  } catch {
+  } catch (error) {
+    // Provide helpful error message with API URL for debugging
+    const errorMsg = `Can't reach the PesaRate server at ${BASE}. Is the backend running? ${error.message}`;
+    console.error(errorMsg);
     throw new Error("Can't reach the PesaRate server. Is the backend running?");
   }
   if (response.status === 204) return null;
