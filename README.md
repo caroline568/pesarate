@@ -14,20 +14,8 @@ PesaRate is a full-stack currency and travel-money workspace designed to match t
 
 The old Explore/Country Detail, Monitor, TravelMoney, Rates, News, Login and Signup pages are intentionally removed from the frontend route tree because they are replaced by the new experience.
 
-## Stack
-
-- React + Vite
-- Tailwind CSS
-- Flask
-- Flask-SQLAlchemy + Alembic/Flask-Migrate
-- JWT authentication
-- PostgreSQL/Supabase in production, SQLite fallback for local development
-- Recharts for historical trends
-
-## Run locally
-
-### Backend
-
+flask db upgrade
+python run.py
 ```bash
 cd backend
 python3 -m venv .venv
@@ -36,6 +24,63 @@ pip install -r requirements.txt
 cp .env.example .env
 flask db upgrade
 python run.py
+```
+
+Backend runs at `http://localhost:5000`.
+
+### Frontend
+
+In a second terminal:
+
+```bash
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Frontend runs at `http://localhost:5173`.
+
+## Production Deployment
+
+**⚠️ CRITICAL: The frontend and backend must be deployed separately to different URLs.**
+
+### Frontend (Vercel)
+
+1. Push to GitHub
+2. In **Vercel project settings → Environment Variables**, add:
+	```
+	VITE_API_URL=https://your-backend-url/api
+	```
+	Replace with your actual backend deployment URL (e.g., `https://pesarate-api.render.com/api`)
+
+3. Trigger a redeploy for the new env var to take effect
+
+### Backend (Render or similar)
+
+1. Deploy to Render (or your chosen platform)
+2. Set environment variables:
+	```
+	FLASK_ENV=production
+	SECRET_KEY=(generate random string)
+	JWT_SECRET_KEY=(generate random string)
+	DATABASE_URL=postgresql://...
+	CORS_ORIGINS=https://pesarate.vercel.app,https://your-domain.com
+	```
+	**Important**: Update `CORS_ORIGINS` to include your deployed frontend URL.
+
+3. Ensure database migrations run on first deploy (Render can do this automatically)
+
+### Troubleshooting
+
+**"Can't reach the PesaRate server" error?**
+
+1. Check Vercel has the `VITE_API_URL` env var set (not just `.env.production`)
+2. Verify the URL is correct: `curl https://your-backend-url/api/health` should return `{"status": "ok"}`
+3. Check backend `CORS_ORIGINS` includes your frontend URL
+4. Check browser Network tab to see actual API request URL
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ```
 
 Backend runs at `http://localhost:5000`.
