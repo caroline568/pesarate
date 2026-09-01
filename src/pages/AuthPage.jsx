@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import logo from "../assets/pesarate-logo.png";
 
-export default function Home({mode="login"}){
+export default function AuthPage({mode="login"}){
   const [params]=useSearchParams(); const [tab,setTab]=useState(params.get("mode")||mode); const nav=useNavigate(); const {login,register,status}=useAuth();
   const [name,setName]=useState(""); const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [show,setShow]=useState(false); const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
   useEffect(()=>{const m=params.get("mode"); if(m) setTab(m);},[params]);
