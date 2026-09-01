@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from google.auth.transport import requests as google_requests
@@ -121,6 +123,12 @@ def update_me():
             if len(avatar.encode("utf-8")) > MAX_AVATAR_BYTES:
                 return jsonify(error="Avatar image is too large"), 422
             user.avatar = avatar
+
+    if "use_cases" in data:
+        use_cases = data.get("use_cases")
+        if not isinstance(use_cases, list) or not all(isinstance(item, str) for item in use_cases):
+            return jsonify(error="Use cases must be a list of choices"), 422
+        user.use_cases = json.dumps(use_cases[:4])
 
     db.session.commit()
     return jsonify(user=user.to_dict())
