@@ -1,21 +1,253 @@
 # PesaRate
 
-PesaRate is a full-stack currency and travel-money workspace designed to match the supplied PesaRate product mock: a compact light dashboard, deep-blue sidebar, green actions, live KES rates, saved conversions, trips, trends/news, alerts, and profile management.
+**PesaRate** is a full-stack currency and travel-money workspace built progressively across the Moringa School Software Engineering capstone phases.
 
-## What is included
+The project evolved from a **React-based currency experience in Phase 1**, into a **JWT-authenticated application with a Flask backend in Phase 2**, and finally into a **complete full-stack financial workspace with authentication, PostgreSQL persistence, CRUD functionality, and deployment-ready architecture**.
 
-- **Landing / Sign in** — one tabbed experience for login and sign-up.
-- **Dashboard** — live KES rates from ExchangeRate-API, recent saved conversions, upcoming trips sorted by travel date, and active alerts.
-- **Convert** — live conversion, provider/channel selection, saved conversion CRUD, and edit support through `PATCH`.
-- **Trips** — full CRUD against `/api/trips`, live KES conversion, and countdown from `travel_date`.
-- **Trends & News** — historical chart logic combined with editorial financial context in a two-panel layout.
-- **Alerts** — backend `from_currency` / `to_currency` model, create/edit/delete, and active/paused toggle.
-- **Profile** — profile editing with avatar, account statistics, saved trips overview, logout, and account deletion.
+The progression demonstrates how the application grew from a frontend prototype into a functional full-stack product.
 
-The old Explore/Country Detail, Monitor, TravelMoney, Rates, News, Login and Signup pages are intentionally removed from the frontend route tree because they are replaced by the new experience.
+---
 
-flask db upgrade
-python run.py
+## 🚀 Project Progression
+
+### Phase 1 — React Frontend
+
+PesaRate began as a React single-page application focused on creating a polished currency and travel-money experience.
+
+The Phase 1 application established the product concept, user interface, navigation, and core currency functionality.
+
+**Phase 1 highlights:**
+
+* React single-page application
+* Responsive dashboard experience
+* Currency conversion
+* Live exchange-rate data
+* Currency and travel-money focused UX
+* React state management
+* Reusable components
+* Client-side routing
+* API integration
+* Initial PesaRate product identity and interface
+
+The goal of Phase 1 was to establish the **frontend experience and product direction**.
+
+---
+
+### Phase 2 — Flask API + JWT Authentication
+
+Phase 2 transformed PesaRate from a frontend-focused React application into a full-stack application.
+
+A Flask backend was introduced to provide persistent application data, REST API endpoints, and authenticated user interactions.
+
+**Phase 2 highlights:**
+
+* Flask REST API
+* JWT-based authentication
+* User registration and login
+* Protected API routes
+* PostgreSQL database architecture
+* SQLAlchemy models
+* Flask-Migrate / Alembic migrations
+* Authenticated CRUD operations
+* Saved conversions
+* Trips management
+* Currency alerts
+* Profile management
+* React ↔ Flask API integration
+
+This phase established the application's **backend architecture and authenticated data layer**.
+
+---
+
+### Final Phase — Full-Stack PesaRate
+
+The final version brings the frontend and backend together into a complete financial workspace.
+
+PesaRate now combines live market information, authenticated user data, persistent resources, provider-aware conversion estimates, travel planning, alerts, and profile management.
+
+### Current application includes
+
+* **Landing / Authentication** — streamlined login and registration experience.
+* **Dashboard** — live exchange rates, recent saved conversions, upcoming trips, and active alerts.
+* **Convert** — live conversion, channel/provider selection, estimated fees, saved conversion CRUD, and editing.
+* **Trips** — complete CRUD functionality, travel dates, live currency conversion, and travel countdowns.
+* **Trends & News** — historical exchange-rate visualization combined with financial context.
+* **Alerts** — create, edit, delete, pause, and activate currency alerts.
+* **Profile** — profile editing, avatar, account statistics, saved-conversion history, logout, and account deletion.
+
+### Provider-aware conversion
+
+The Convert experience goes beyond simply multiplying an amount by an exchange rate.
+
+Users can select a channel such as:
+
+* Wise
+* Remitly
+* Bank
+* M-Pesa
+* Cash pickup
+
+The application uses **demo provider pricing estimates** to simulate fees and show how the selected channel can affect the final amount received.
+
+> **Note:** Provider fees are mock/demo estimates for the capstone application and are not intended to represent live provider pricing.
+
+---
+
+## 🏗️ Architecture
+
+```text
+┌──────────────────────────────┐
+│        React / Vite          │
+│                              │
+│  Dashboard • Convert        │
+│  Trips • Alerts • Profile   │
+└──────────────┬───────────────┘
+               │
+               │ REST API
+               │ JWT
+               ▼
+┌──────────────────────────────┐
+│          Flask API           │
+│                              │
+│ Auth • Conversions           │
+│ Trips • Alerts • Profile    │
+└──────────────┬───────────────┘
+               │
+               │ SQLAlchemy
+               ▼
+┌──────────────────────────────┐
+│       PostgreSQL / DB        │
+│                              │
+│ Users • Conversions          │
+│ Trips • Alerts               │
+└──────────────────────────────┘
+```
+
+---
+
+## 🛠️ Technology Stack
+
+### Frontend
+
+* React
+* Vite
+* JavaScript
+* CSS / Tailwind CSS
+* React Router
+* REST API integration
+
+### Backend
+
+* Python
+* Flask
+* Flask-JWT-Extended
+* Flask-SQLAlchemy
+* Flask-Migrate
+* Marshmallow
+
+### Database
+
+* PostgreSQL
+* SQLAlchemy ORM
+* Alembic migrations
+
+### External APIs
+
+* ExchangeRate-API — live exchange rates
+* Frankfurter — historical exchange-rate data
+
+### Development & Deployment
+
+* Git
+* GitHub
+* Vercel — frontend
+* Render or similar platform — Flask API
+* Supabase/PostgreSQL-compatible database
+
+---
+
+## 🔐 Authentication
+
+PesaRate uses JWT authentication to protect user-specific application data.
+
+Authentication endpoints include:
+
+```text
+POST   /api/auth/register
+POST   /api/auth/login
+GET    /api/auth/me
+PATCH  /api/auth/me
+DELETE /api/auth/me
+```
+
+Authenticated resources are associated with the currently logged-in user, ensuring saved conversions, trips, and alerts remain user-specific.
+
+---
+
+## 📊 API Resources
+
+### Conversions
+
+```text
+GET    /api/conversions
+POST   /api/conversions
+PATCH  /api/conversions/<id>
+DELETE /api/conversions/<id>
+```
+
+### Trips
+
+```text
+GET    /api/trips
+POST   /api/trips
+PATCH  /api/trips/<id>
+DELETE /api/trips/<id>
+```
+
+### Alerts
+
+```text
+GET    /api/alerts
+POST   /api/alerts
+PATCH  /api/alerts/<id>
+DELETE /api/alerts/<id>
+```
+
+---
+
+## 📁 Project Structure
+
+```text
+pesarate/
+├── backend/
+│   ├── app/
+│   │   ├── routes/
+│   │   ├── models/
+│   │   └── ...
+│   ├── migrations/
+│   ├── tests/
+│   ├── requirements.txt
+│   └── run.py
+│
+├── src/
+│   ├── api-client.js
+│   ├── components/
+│   ├── hooks/
+│   ├── pages/
+│   └── utils/
+│
+├── public/
+├── vercel.json
+├── package.json
+└── README.md
+```
+
+---
+
+## 💻 Local Development
+
+### Backend
+
 ```bash
 cd backend
 python3 -m venv .venv
@@ -26,126 +258,143 @@ flask db upgrade
 python run.py
 ```
 
-Backend runs at `http://localhost:5000`.
+The Flask API runs at:
+
+```text
+http://localhost:5000
+```
 
 ### Frontend
 
-In a second terminal:
+Open a second terminal:
 
 ```bash
-cp .env.example .env
 npm install
 npm run dev
 ```
 
-Frontend runs at `http://localhost:5173`.
+The frontend normally runs at:
 
-## Production Deployment
-
-**⚠️ CRITICAL: The frontend and backend must be deployed separately to different URLs.**
-
-### Frontend (Vercel)
-
-1. Push to GitHub
-2. In **Vercel project settings → Environment Variables**, add:
-	```
-	VITE_API_URL=https://your-backend-url/api
-	```
-	Replace with your actual backend deployment URL (e.g., `https://pesarate-api.render.com/api`)
-
-3. Trigger a redeploy for the new env var to take effect
-
-### Backend (Render or similar)
-
-1. Deploy to Render (or your chosen platform)
-2. Set environment variables:
-	```
-	FLASK_ENV=production
-	SECRET_KEY=(generate random string)
-	JWT_SECRET_KEY=(generate random string)
-	DATABASE_URL=postgresql://...
-	CORS_ORIGINS=https://pesarate.vercel.app,https://your-domain.com
-	```
-	**Important**: Update `CORS_ORIGINS` to include your deployed frontend URL.
-
-3. Ensure database migrations run on first deploy (Render can do this automatically)
-
-### Troubleshooting
-
-**"Can't reach the PesaRate server" error?**
-
-1. Check Vercel has the `VITE_API_URL` env var set (not just `.env.production`)
-2. Verify the URL is correct: `curl https://your-backend-url/api/health` should return `{"status": "ok"}`
-3. Check backend `CORS_ORIGINS` includes your frontend URL
-4. Check browser Network tab to see actual API request URL
-
-For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
-
+```text
+http://localhost:5173
 ```
 
-Backend runs at `http://localhost:5000`.
+If the Flask API is running on another host, configure:
 
-### Frontend
-
-In a second terminal:
-
-```bash
-cp .env.example .env
-npm install
-npm run dev
+```text
+VITE_API_URL=https://your-backend-url/api
 ```
 
-Frontend runs at the Vite URL shown in the terminal, normally `http://localhost:5173`.
+---
 
-Set `VITE_API_URL` when the Flask backend is deployed somewhere other than localhost.
+## 🗄️ Database Migrations
 
-## Database migrations
-
-The latest migration adds `channel` to saved conversions. Run:
+After pulling changes that introduce database updates:
 
 ```bash
 cd backend
 flask db upgrade
 ```
 
-before testing the rebuilt Convert and Dashboard pages against an existing database.
+The migration system keeps the database schema synchronized with the application's SQLAlchemy models.
 
-## API endpoints used by the rebuilt UI
+---
 
-### Auth
+## 🌍 Production Deployment
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `PATCH /api/auth/me`
-- `DELETE /api/auth/me`
+PesaRate uses a separated frontend/backend architecture.
 
-### Conversions
+### Frontend — Vercel
 
-- `GET /api/conversions`
-- `POST /api/conversions`
-- `PATCH /api/conversions/<id>`
-- `DELETE /api/conversions/<id>`
+Configure the Vercel environment variable:
 
-### Trips
+```text
+VITE_API_URL=https://your-backend-url/api
+```
 
-- `GET /api/trips`
-- `POST /api/trips`
-- `PATCH /api/trips/<id>`
-- `DELETE /api/trips/<id>`
+Then redeploy the frontend.
 
-### Alerts
+### Backend — Render or similar
 
-- `GET /api/alerts`
-- `POST /api/alerts`
-- `PATCH /api/alerts/<id>`
-- `DELETE /api/alerts/<id>`
+Configure:
 
-## External market data
+```text
+FLASK_ENV=production
+SECRET_KEY=your-production-secret
+JWT_SECRET_KEY=your-production-jwt-secret
+DATABASE_URL=your-postgresql-connection-string
+CORS_ORIGINS=https://pesarate.vercel.app
+```
 
-- ExchangeRate-API free endpoint for live exchange rates.
-- Frankfurter for historical charts. Historical coverage is limited to currencies tracked by its ECB data source, so the UI does not fabricate KES historical data.
+Run database migrations during deployment:
 
-## Deployment
+```bash
+flask db upgrade
+```
 
-The frontend remains Vercel-friendly through `vercel.json`. Configure `VITE_API_URL` to point to the deployed Flask API. Configure the Flask backend with `DATABASE_URL`, `SECRET_KEY`, `JWT_SECRET_KEY`, and `CORS_ORIGINS`.
+The backend must allow the deployed frontend URL through `CORS_ORIGINS`.
+
+---
+
+## 🔎 Troubleshooting
+
+### "Can't reach the PesaRate server"
+
+Check:
+
+1. `VITE_API_URL` is configured in the Vercel project.
+2. The backend URL is correct.
+3. The Flask API is running.
+4. The backend database is connected.
+5. `CORS_ORIGINS` includes the deployed frontend URL.
+6. The browser Network tab shows requests going to the expected API URL.
+
+For additional deployment information, see `DEPLOYMENT.md`.
+
+---
+
+## 📈 What This Project Demonstrates
+
+PesaRate represents a progression from **frontend development to full-stack engineering**:
+
+```text
+Phase 1
+React UI
+   ↓
+API Integration
+   ↓
+Phase 2
+Flask REST API
+   ↓
+JWT Authentication
+   ↓
+Database Persistence
+   ↓
+CRUD Resources
+   ↓
+Final Phase
+Complete Full-Stack Application
+   ↓
+Deployment-Ready Architecture
+```
+
+Rather than rebuilding the application for each phase, PesaRate was progressively extended to demonstrate the development of a real application across multiple stages of the software engineering lifecycle.
+
+---
+
+## 🎓 Capstone Context
+
+PesaRate was developed as a Moringa School Software Engineering capstone project to demonstrate the ability to:
+
+* Design and build a React application
+* Consume external APIs
+* Build RESTful Flask APIs
+* Implement JWT authentication
+* Design relational database models
+* Implement authenticated CRUD operations
+* Integrate frontend and backend systems
+* Manage database migrations
+* Test backend functionality
+* Prepare a full-stack application for deployment
+
+The project ultimately evolved from a **React currency application into a complete authenticated full-stack financial workspace**.
