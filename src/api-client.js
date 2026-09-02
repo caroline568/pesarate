@@ -40,7 +40,19 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
     throw new Error("Can't reach the PesaRate server. Is the backend running?");
   }
   if (response.status === 204) return null;
-  const data = await response.json().catch(() => ({}));
+  
+  let data;
+  try {
+    data = await response.json();
+  } catch (parseError) {
+    console.error(`Failed to parse JSON response from ${path}:`, response.status, response.statusText);
+    // If the server returns HTML (error page), it's a server error
+    if (response.status >= 500) {
+      throw new Error("Something went wrong on our end. Please try again.");
+    }
+    throw new Error("Invalid response from server. Please try again.");
+  }
+  
   if (!response.ok) throw new Error(data.error || "Request failed");
   return data;
 }
