@@ -4,7 +4,7 @@
  */
 
 export async function checkApiHealth() {
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const apiUrl = import.meta.env.VITE_API_URL || "/api";
   
   try {
     const response = await fetch(`${apiUrl}/health`, { 
@@ -44,7 +44,7 @@ export async function checkApiHealth() {
  * Log API configuration for debugging
  */
 export function logApiConfig() {
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const apiUrl = import.meta.env.VITE_API_URL || "/api";
   console.log("=== PesaRate API Configuration ===");
   console.log(`API URL: ${apiUrl}`);
   console.log(`Mode: ${import.meta.env.MODE}`);
