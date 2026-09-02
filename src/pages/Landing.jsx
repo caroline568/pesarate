@@ -11,7 +11,19 @@ const features = [
   { icon: UserRound, title: "One profile, everywhere", desc: "Your account, saved conversions, and trips follow you across every device you sign in on." },
 ];
 
+function FeatureCard({ icon: Icon, title, desc }) {
+  return (
+    <div className="w-72 shrink-0 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,.04)] sm:w-80">
+      <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#102a4a] text-[#55c94b]"><Icon size={16} /></div>
+      <h3 className="mt-4 text-[13px] font-bold text-slate-900">{title}</h3>
+      <p className="mt-1.5 text-xs leading-5 text-slate-500">{desc}</p>
+    </div>
+  );
+}
+
 export default function Landing() {
+  const row1 = features.slice(0, 3);
+  const row2 = features.slice(3, 6);
   return (
     <main className="min-h-screen bg-[#f6f8fb] text-slate-900">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#031933]">
@@ -42,19 +54,24 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1180px] px-4 py-16 sm:px-6">
-        <div className="max-w-xl">
-          <p className="text-[10px] font-semibold uppercase tracking-[.12em] text-slate-400">Everything in one workspace</p>
-          <h2 className="mt-1 text-xl font-bold sm:text-2xl">Built for people managing money across currencies.</h2>
+      <section className="py-16">
+        <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
+          <div className="max-w-xl">
+            <p className="text-[10px] font-semibold uppercase tracking-[.12em] text-slate-400">Everything in one workspace</p>
+            <h2 className="mt-1 text-xl font-bold sm:text-2xl">Built for people managing money across currencies.</h2>
+          </div>
         </div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,.04)]">
-              <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#102a4a] text-[#55c94b]"><Icon size={16} /></div>
-              <h3 className="mt-4 text-[13px] font-bold text-slate-900">{title}</h3>
-              <p className="mt-1.5 text-xs leading-5 text-slate-500">{desc}</p>
+        <div className="mt-8 space-y-4">
+          <div className="marquee-row overflow-hidden">
+            <div className="marquee-track marquee-left gap-4 px-4 sm:px-6">
+              {[...row1, ...row1].map((feature, i) => <FeatureCard key={`${feature.title}-${i}`} {...feature} />)}
             </div>
-          ))}
+          </div>
+          <div className="marquee-row overflow-hidden">
+            <div className="marquee-track marquee-right gap-4 px-4 sm:px-6">
+              {[...row2, ...row2].map((feature, i) => <FeatureCard key={`${feature.title}-${i}`} {...feature} />)}
+            </div>
+          </div>
         </div>
       </section>
 
