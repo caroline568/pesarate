@@ -48,6 +48,16 @@ def register_error_handlers(app):
     def bad_request(e):
         return jsonify(error=getattr(e, "description", "Bad request")), 400
 
+    @app.errorhandler(500)
+    def internal_error(e):
+        app.logger.error(f"Internal server error: {str(e)}", exc_info=True)
+        return jsonify(error="Something went wrong on our end. Please try again."), 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+        return jsonify(error="Something went wrong on our end. Please try again."), 500
+
     @app.errorhandler(422)
     def unprocessable(e):
         return jsonify(error=getattr(e, "description", "Unprocessable entity")), 422
