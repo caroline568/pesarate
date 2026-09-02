@@ -1,4 +1,4 @@
-# PesaRate — Phase 2 rebuild
+# PesaRate
 
 PesaRate is a full-stack currency and travel-money workspace designed to match the supplied PesaRate product mock: a compact light dashboard, deep-blue sidebar, green actions, live KES rates, saved conversions, trips, trends/news, alerts, and profile management.
 
