@@ -74,3 +74,17 @@ before this was handed off — see the commands in `tests/manual_smoke_test.sh`.
 - JWTs aren't revocable before expiry (7 days) since there's no token blocklist; fine for
   a course project, worth adding (e.g. Redis-backed blocklist) before any real deployment.
 - No rate limiting on `/api/auth/*`, which a public deployment would want.
+
+## Provider comparison endpoint
+
+PesaRate exposes a public read-only comparison endpoint:
+
+```text
+GET /api/conversions/compare?from_currency=GBP&to_currency=EUR&amount=10000&channel=Wise
+```
+
+It combines PesaRate's current reference rate from ExchangeRate-API with Wise's v4 Comparison API. The response contains the mid-market result, provider result, provider rate, fee, markup, difference, and delivery estimate.
+
+Supported channels: `Wise`, `Remitly`, `Bank`, and `Cash pickup`. Cash pickup intentionally returns an unsupported response rather than an invented markup because Wise currently models bank-transfer pay-in/pay-out in its comparison API.
+
+Set `WISE_API_TOKEN` in the backend environment only if your Wise access requires a bearer token.
