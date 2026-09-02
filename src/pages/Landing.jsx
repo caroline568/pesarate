@@ -22,8 +22,6 @@ function FeatureCard({ icon: Icon, title, desc }) {
 }
 
 export default function Landing() {
-  const row1 = features.slice(0, 3);
-  const row2 = features.slice(3, 6);
   return (
     <main className="min-h-screen bg-[#f6f8fb] text-slate-900">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#031933]">
@@ -61,15 +59,10 @@ export default function Landing() {
             <h2 className="mt-1 text-xl font-bold sm:text-2xl">Built for people managing money across currencies.</h2>
           </div>
         </div>
-        <div className="mt-8 space-y-4">
+        <div className="mt-8">
           <div className="marquee-row overflow-hidden">
             <div className="marquee-track marquee-left gap-4 px-4 sm:px-6">
-              {[...row1, ...row1].map((feature, i) => <FeatureCard key={`${feature.title}-${i}`} {...feature} />)}
-            </div>
-          </div>
-          <div className="marquee-row overflow-hidden">
-            <div className="marquee-track marquee-right gap-4 px-4 sm:px-6">
-              {[...row2, ...row2].map((feature, i) => <FeatureCard key={`${feature.title}-${i}`} {...feature} />)}
+              {[...features, ...features].map((feature, i) => <FeatureCard key={`${feature.title}-${i}`} {...feature} />)}
             </div>
           </div>
         </div>
