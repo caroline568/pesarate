@@ -172,7 +172,7 @@ export default function AuthPage({ mode = "login" }) {
                     <span>KES 210,000</span>
                   </div>
                   <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-[#7fe17d] to-[#43b34d]" />
+                    <div className="h-full w-[72%] rounded-full bg-linear-to-r from-[#7fe17d] to-[#43b34d]" />
                   </div>
                 </div>
                 <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/8 px-3 py-2 text-[10px] text-white/72">
@@ -201,7 +201,7 @@ export default function AuthPage({ mode = "login" }) {
               {onboarding ? (
                 <div className="auth-reveal">
                   {showWelcome && (
-                    <div className="relative mb-5 overflow-hidden rounded-[24px] border border-[#dfeee0] bg-gradient-to-r from-[#f6fbf5] via-[#ffffff] to-[#f2fbf0] p-4 text-center shadow-sm">
+                    <div className="relative mb-5 overflow-hidden rounded-3xl border border-[#dfeee0] bg-linear-to-r from-[#f6fbf5] via-[#ffffff] to-[#f2fbf0] p-4 text-center shadow-sm">
                       <ConfettiBurst />
                       <div className="relative">
                         <div className="mb-2 flex justify-center text-[#55c94b]"><Sparkles size={18} /></div>

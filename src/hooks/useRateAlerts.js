@@ -13,7 +13,11 @@ export function useRateAlerts() {
     try { const d = await alertsApi.list(); setItems(d.alerts || []); setStatus("ready"); }
     catch (e) { setError(e.message); setStatus("error"); }
   }, [authStatus]);
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    if (authStatus === "authenticated") {
+      refetch();
+    }
+  }, [authStatus, refetch]);
   const add = async (payload) => { await alertsApi.create(payload); await refetch(); };
   const update = async (id, payload) => { await alertsApi.update(id, payload); await refetch(); };
   const remove = async (id) => { await alertsApi.remove(id); await refetch(); };

@@ -35,6 +35,7 @@ export default function Profile() {
     tripsApi.list().then((data) => setTrips(data.trips || [])).catch(() => {});
   }, []);
 
+  // Synchronize editable profile fields when the authenticated user changes.
   useEffect(() => {
     setName(user?.name || "");
     setAvatar(user?.avatar || "");
