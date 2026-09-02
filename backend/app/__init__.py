@@ -18,6 +18,17 @@ def create_app(config_class=Config):
     cors.init_app(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}}, supports_credentials=True)
 
     from . import models  # noqa: F401  (registers models with SQLAlchemy)
+
+    # Safety net for local SQLite dev only: if someone runs `python run.py`
+    # without ever running `flask db upgrade`, every request that touches
+    # the DB (including register/login) 500s with "no such table: users".
+    # db.create_all() is idempotent and a no-op once real migrations have
+    # run, so this only ever helps — it never runs against Postgres, where
+    # migrations stay the single source of truth.
+    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        with app.app_context():
+            db.create_all()
+
     from .routes.auth import auth_bp
     from .routes.conversions import conversions_bp
     from .routes.alerts import alerts_bp
@@ -47,16 +58,6 @@ def register_error_handlers(app):
     @app.errorhandler(400)
     def bad_request(e):
         return jsonify(error=getattr(e, "description", "Bad request")), 400
-
-    @app.errorhandler(500)
-    def internal_error(e):
-        app.logger.error(f"Internal server error: {str(e)}", exc_info=True)
-        return jsonify(error="Something went wrong on our end. Please try again."), 500
-
-    @app.errorhandler(Exception)
-    def handle_exception(e):
-        app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
-        return jsonify(error="Something went wrong on our end. Please try again."), 500
 
     @app.errorhandler(422)
     def unprocessable(e):

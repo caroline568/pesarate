@@ -26,34 +26,53 @@ export function setToken(token, remember = false) {
   }
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Render's free tier spins a sleeping backend down after inactivity, so the
+// *first* request after a while can fail to connect even though the server
+// is fine — it just hasn't finished waking up yet. Retry a couple of times
+// before giving up, instead of surfacing a network blip as a hard failure.
+async function fetchWithRetry(url, options, attempts = 3) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      if (attempt === attempts) throw error;
+      await sleep(attempt * 1200);
+    }
+  }
+}
+
 async function request(path, { method = "GET", body, auth = true } = {}) {
   const headers = { "Content-Type": "application/json" };
   const token = getToken();
   if (auth && token) headers.Authorization = `Bearer ${token}`;
   let response;
   try {
-    response = await fetch(`${BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    response = await fetchWithRetry(`${BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
   } catch (error) {
-    // Provide helpful error message with API URL for debugging
-    const errorMsg = `Can't reach the PesaRate server at ${BASE}. Is the backend running? ${error.message}`;
-    console.error(errorMsg);
-    throw new Error("Can't reach the PesaRate server. Is the backend running?");
+    // A thrown fetch (as opposed to a non-2xx response) means the request
+    // never reached the server at all: wrong VITE_API_URL, backend not
+    // running/deployed, or CORS rejecting the request outright.
+    console.error(`Can't reach the PesaRate server at ${BASE}: ${error.message}`);
+    throw new Error(`Can't reach the PesaRate server at ${BASE}. Check that the backend is running and VITE_API_URL is set correctly.`);
   }
   if (response.status === 204) return null;
-  
-  let data;
+  const raw = await response.text();
+  let data = {};
   try {
-    data = await response.json();
-  } catch (parseError) {
-    console.error(`Failed to parse JSON response from ${path}:`, response.status, response.statusText);
-    // If the server returns HTML (error page), it's a server error
-    if (response.status >= 500) {
-      throw new Error("Something went wrong on our end. Please try again.");
-    }
-    throw new Error("Invalid response from server. Please try again.");
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    // The server responded but not with JSON — usually a 500 debug page or
+    // a proxy/host error page. Surface the status instead of a vague
+    // "Request failed" so it's actually diagnosable.
+    if (!response.ok) throw new Error(`Server error (${response.status}). Check the backend logs.`);
   }
-  
-  if (!response.ok) throw new Error(data.error || "Request failed");
+  if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
   return data;
 }
 
