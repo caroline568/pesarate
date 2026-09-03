@@ -14,6 +14,7 @@ import { tripsApi, conversionsApi } from "../api-client";
 import { useRates } from "../hooks/useRates";
 import { Card } from "../components/Card";
 import PageHeader from "../components/PageHeader";
+import COUNTRIES from "../data/countries";
 
 const CURRENCIES = ["USD", "GBP", "EUR", "AED", "TZS", "UGX", "ZAR"];
 
@@ -25,8 +26,7 @@ const CHANNELS = [
   "Cash pickup",
 ];
 
-const COUNTRIES_URL =
-  "https://restcountries.com/v3.1/all?fields=name,cca2,currencies,flags,region,subregion";
+
 
 const DEFAULT_BREAKDOWN = {
   Accommodation: 30,
@@ -83,22 +83,16 @@ function formatNumber(value, digits = 2) {
 }
 
 function getCountryName(country) {
-  return country?.name?.common || country?.name?.official || "";
+  return country?.name || "";
 }
 
 function findCountry(countries, value) {
   const target = String(value || "").trim().toLowerCase();
 
   return countries.find((country) => {
-    const common = getCountryName(country).toLowerCase();
-    const official = String(
-      country?.name?.official || ""
-    ).toLowerCase();
-
     return (
-      country?.cca2?.toLowerCase() === target ||
-      common === target ||
-      official === target
+      country?.code?.toLowerCase() === target ||
+      country?.name?.toLowerCase() === target
     );
   });
 }
@@ -200,9 +194,8 @@ function channelCost(amount, channel) {
 
 export default function Trips() {
   const [trips, setTrips] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const [countriesLoading, setCountriesLoading] =
-    useState(true);
+  const countries = COUNTRIES;
+  const countriesLoading = false;
 
   const [form, setForm] = useState(blank);
   const [editing, setEditing] = useState(null);
@@ -224,56 +217,14 @@ export default function Trips() {
     load();
   }, []);
 
-  useEffect(() => {
-    let active = true;
-
-    fetch(COUNTRIES_URL)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(
-            "Unable to load country information"
-          );
-        }
-
-        return response.json();
-      })
-      .then((data) => {
-        if (!active) return;
-
-        const sorted = (Array.isArray(data) ? data : [])
-          .filter(
-            (country) =>
-              country?.name?.common &&
-              country?.cca2
-          )
-          .sort((a, b) =>
-            getCountryName(a).localeCompare(
-              getCountryName(b)
-            )
-          );
-
-        setCountries(sorted);
-      })
-      .catch(() => {
-        if (active) setCountries([]);
-      })
-      .finally(() => {
-        if (active) setCountriesLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const selectedCountry = findCountry(
     countries,
     form.country_code || form.destination
   );
 
-  const countryCurrency = Object.keys(
-    selectedCountry?.currencies || {}
-  )[0];
+  const countryCurrency =
+    selectedCountry?.currency;
 
   const availableCurrencies = Array.from(
     new Set([
@@ -306,15 +257,26 @@ export default function Trips() {
         Number(form.days)
       : 0;
 
-  const upcoming = useMemo(
-    () =>
-      [...trips].sort((a, b) =>
-        a.travel_date.localeCompare(
-          b.travel_date
+  const upcoming = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return [...trips]
+      .filter((trip) => {
+        if (!trip.travel_date) return false;
+
+        const date = new Date(
+          `${trip.travel_date}T00:00:00`
+        );
+
+        return date >= today;
+      })
+      .sort((a, b) =>
+        String(a.travel_date || "").localeCompare(
+          String(b.travel_date || "")
         )
-      ),
-    [trips]
-  );
+      );
+  }, [trips]);
 
   const featuredTrip = upcoming[0];
 
@@ -342,9 +304,7 @@ export default function Trips() {
       );
 
       const localCurrency =
-        Object.keys(
-          destinationCountry?.currencies || {}
-        )[0];
+        destinationCountry?.currency;
 
       const currency =
         localCurrency ||
@@ -492,7 +452,7 @@ export default function Trips() {
         findCountry(
           countries,
           trip.destination
-        )?.cca2 ||
+        )?.code ||
         "",
       travel_date: trip.travel_date,
       days: trip.days,
@@ -545,11 +505,9 @@ export default function Trips() {
       destination:
         getCountryName(country) || value,
       country_code:
-        country?.cca2 || "",
+        country?.code || "",
       target_currency:
-        Object.keys(
-          country?.currencies || {}
-        )[0] ||
+        country?.currency ||
         form.target_currency,
     };
 
@@ -623,8 +581,8 @@ export default function Trips() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 px-4 py-3 md:min-w-[230px]">
-            <p className="text-[8px] font-semibold uppercase tracking-[.1em] text-slate-400">
+          <div className="rounded-xl bg-slate-50 px-4 py-3 md:min-w-57.5">
+            <p className="text-[8px] font-semibold uppercase tracking-widest text-slate-400">
               Travel budget
             </p>
 
@@ -968,12 +926,8 @@ export default function Trips() {
                     countries.map(
                       (country) => (
                         <option
-                          key={
-                            country.cca2
-                          }
-                          value={
-                            country.cca2
-                          }
+                          key={country.code}
+                          value={country.code}
                         >
                           {getCountryName(
                             country
@@ -1331,7 +1285,7 @@ export default function Trips() {
                 />
 
                 <div className="min-w-0 flex-1">
-                  <p className="text-[8px] font-semibold uppercase tracking-[.1em] text-slate-400">
+                  <p className="text-[8px] font-semibold uppercase tracking-widest text-slate-400">
                     Live rate preview
                   </p>
 
