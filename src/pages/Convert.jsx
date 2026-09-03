@@ -25,7 +25,7 @@ const CURRENCIES = [
   "ZAR",
 ];
 
-const CHANNELS = ["Remitly", "Wise", "Bank", "Cash pickup"];
+const CHANNELS = ["Remitly", "Wise", "Bank", "M-Pesa", "Cash pickup"];
 
 function formatNumber(value, digits = 2) {
   if (!Number.isFinite(Number(value))) {
@@ -55,6 +55,17 @@ export default function Convert() {
   const [comparison, setComparison] = useState(null);
   const [comparisonError, setComparisonError] = useState("");
   const activeComparisonError = comparisonError || "";
+
+  /*
+   * Compact channel-comparison table.
+   *
+   * Keyed by channel name so a single failed/pending channel never
+   * blocks the others from rendering. Uses the same compare endpoint
+   * as the primary conversion, just called once per channel.
+   */
+  const [channelComparisons, setChannelComparisons] = useState({});
+  const [channelComparisonsLoading, setChannelComparisonsLoading] =
+    useState(false);
 
   const { rates } = useRates(from);
   const { items = [], add, update } = useSavedConversions();
@@ -142,6 +153,50 @@ export default function Convert() {
       active = false;
     };
   }, [amount, from, to, channel]);
+
+  /*
+   * Channel comparison table.
+   *
+   * Independent of the selected channel — runs the same compare
+   * endpoint for every supported channel so the user can see how
+   * the currently selected channel stacks up against the rest.
+   */
+  useEffect(() => {
+    if (from === to || !amount || amount <= 0) {
+      setChannelComparisons({});
+      setChannelComparisonsLoading(false);
+      return;
+    }
+
+    let active = true;
+    setChannelComparisonsLoading(true);
+
+    Promise.allSettled(
+      CHANNELS.map((ch) =>
+        conversionsApi
+          .compare({ from, to, amount, channel: ch })
+          .then((data) => ({ channel: ch, comparison: data?.comparison || null }))
+      )
+    ).then((results) => {
+      if (!active) {
+        return;
+      }
+
+      const next = {};
+      results.forEach((settled, index) => {
+        const ch = CHANNELS[index];
+        next[ch] =
+          settled.status === "fulfilled" ? settled.value.comparison : null;
+      });
+
+      setChannelComparisons(next);
+      setChannelComparisonsLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [amount, from, to]);
 
   /*
    * Core market rate.
@@ -248,6 +303,28 @@ export default function Convert() {
     Number.isFinite(Number(result)) &&
     Number(result) >= 0 &&
     Number.isFinite(rate);
+
+  /*
+   * Best channel across the comparison table, by final recipient
+   * amount. Only considers channels that returned a usable quote.
+   */
+  const bestChannel = useMemo(() => {
+    let best = null;
+
+    Object.entries(channelComparisons).forEach(([ch, data]) => {
+      const received = Number(data?.providerResult);
+
+      if (!data || !Number.isFinite(received)) {
+        return;
+      }
+
+      if (!best || received > Number(best.data.providerResult)) {
+        best = { channel: ch, data };
+      }
+    });
+
+    return best;
+  }, [channelComparisons]);
 
   const summary = useMemo(() => {
     if (comparisonLoading) {
@@ -513,6 +590,187 @@ export default function Convert() {
               </p>
             </div>
           </div>
+
+          {/* Transaction breakdown */}
+          {comparisonMatchesSelection && !activeComparisonError && comparison && (
+            <div className="mt-5 rounded-xl border border-slate-200 p-4">
+              <p className="text-[10px] font-bold text-slate-700">
+                Transaction breakdown
+              </p>
+
+              <p className="mt-1 text-[9px] text-slate-400">
+                How your {formatNumber(amount, 0)} {from} → {to} conversion
+                through {comparison.provider?.name || channel} is calculated.
+              </p>
+
+              <div className="mt-3 divide-y divide-slate-100">
+                <div className="flex items-center justify-between gap-3 py-2">
+                  <p className="text-[9px] text-slate-400">
+                    Mid-market exchange rate
+                  </p>
+                  <p className="text-[10px] font-semibold text-slate-800">
+                    1 {from} = {formatNumber(comparison.midMarketRate, 4)} {to}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 py-2">
+                  <p className="text-[9px] text-slate-400">
+                    {comparison.provider?.name || channel} exchange rate
+                  </p>
+                  <p className="text-[10px] font-semibold text-slate-800">
+                    1 {from} = {formatNumber(comparison.providerRate, 4)} {to}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 py-2">
+                  <p className="text-[9px] text-slate-400">
+                    Channel fee (total cost)
+                  </p>
+                  <p className="text-[10px] font-semibold text-slate-800">
+                    {formatNumber(comparison.fee, 2)}{" "}
+                    {comparison.feeCurrency || from}
+                    {Number.isFinite(Number(comparison.feePercent))
+                      ? ` (${formatNumber(comparison.feePercent, 2)}%)`
+                      : ""}
+                  </p>
+                </div>
+
+                {Number.isFinite(Number(comparison.markupPercent)) && (
+                  <div className="flex items-center justify-between gap-3 py-2">
+                    <p className="text-[9px] text-slate-400">FX markup</p>
+                    <p className="text-[10px] font-semibold text-slate-800">
+                      {formatNumber(comparison.markupPercent, 2)}%
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-3 py-2">
+                  <p className="text-[9px] text-slate-400">
+                    Amount after fees
+                  </p>
+                  <p className="text-[10px] font-semibold text-slate-800">
+                    {formatNumber(comparison.amountAfterFee, 2)} {from}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 py-2">
+                  <p className="text-[9px] text-slate-400">
+                    Final amount recipient receives
+                  </p>
+                  <p className="text-[11px] font-bold text-[#43b34d]">
+                    {formatNumber(comparison.providerResult, 2)} {to}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 py-2">
+                  <p className="text-[9px] text-slate-400">
+                    Cost vs. mid-market conversion
+                  </p>
+                  <p className="text-[10px] font-semibold text-red-500">
+                    -{formatNumber(comparison.difference, 2)} {to}
+                    {Number.isFinite(Number(comparison.costPercent))
+                      ? ` (${formatNumber(comparison.costPercent, 2)}%)`
+                      : ""}
+                  </p>
+                </div>
+              </div>
+
+              {comparison.isMockPricing && comparison.comparisonDisclaimer && (
+                <p className="mt-3 text-[8px] leading-4 text-slate-400">
+                  {comparison.comparisonDisclaimer}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Compare channels */}
+          {from !== to && amount > 0 && (
+            <div className="mt-5 rounded-xl border border-slate-200 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-700">
+                    Compare channels
+                  </p>
+                  <p className="mt-1 text-[9px] text-slate-400">
+                    {formatNumber(amount, 0)} {from} → {to} across available
+                    channels.
+                  </p>
+                </div>
+
+                {channelComparisonsLoading && (
+                  <Loader2 size={14} className="animate-spin text-slate-400" />
+                )}
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {CHANNELS.map((ch) => {
+                  const data = channelComparisons[ch];
+                  const isBest = bestChannel?.channel === ch;
+                  const isSelected = ch === channel;
+
+                  return (
+                    <div
+                      key={ch}
+                      className={`flex items-center justify-between gap-3 rounded-lg border p-3 ${
+                        isBest
+                          ? "border-[#55c94b] bg-[#55c94b]/5"
+                          : "border-slate-200"
+                      }`}
+                    >
+                      <div>
+                        <p className="flex flex-wrap items-center gap-2 text-[10px] font-semibold text-slate-800">
+                          {ch}
+
+                          {isBest && (
+                            <span className="rounded-full bg-[#55c94b] px-1.5 py-0.5 text-[7px] font-bold uppercase text-white">
+                              Best value
+                            </span>
+                          )}
+
+                          {isSelected && !isBest && (
+                            <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[7px] font-bold uppercase text-slate-600">
+                              Selected
+                            </span>
+                          )}
+                        </p>
+
+                        <p className="mt-1 text-[8px] text-slate-400">
+                          {data
+                            ? `Fee ${formatNumber(data.fee, 2)} ${
+                                data.feeCurrency || from
+                              } · Rate 1 ${from} = ${formatNumber(
+                                data.providerRate,
+                                4
+                              )} ${to}`
+                            : channelComparisonsLoading
+                              ? "Checking pricing…"
+                              : "Pricing unavailable"}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-slate-900">
+                          {data
+                            ? `${formatNumber(data.providerResult, 2)} ${to}`
+                            : "—"}
+                        </p>
+
+                        {!isSelected && (
+                          <button
+                            type="button"
+                            onClick={() => setChannel(ch)}
+                            className="mt-1 text-[8px] font-semibold text-[#43b34d] hover:underline"
+                          >
+                            Use this channel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="mt-5 flex flex-wrap items-center gap-3">

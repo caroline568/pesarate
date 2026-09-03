@@ -149,17 +149,15 @@ def _select_provider_quote(data, channel):
 
 
 def _build_comparison(source_currency, target_currency, amount, channel):
-    """Build a realistic provider-adjusted conversion for the capstone demo.
-
-    Market FX rates remain live. Provider fees/markups are intentionally
-    simulated because PesaRate is a capstone project rather than a
-    production remittance platform.
-    """
+    """Build a provider comparison using live market and provider quote data."""
     source_currency = source_currency.upper()
     target_currency = target_currency.upper()
 
     if channel not in SUPPORTED_CHANNELS:
         raise ValueError(f"Unsupported channel: {channel}")
+
+    if channel == "Cash pickup":
+        raise ValueError("Cash pickup comparison is not currently supported.")
 
     if amount <= 0:
         raise ValueError("Amount must be greater than zero.")
@@ -171,55 +169,32 @@ def _build_comparison(source_currency, target_currency, amount, channel):
 
     mid_market_result = amount * mid_market_rate
 
-    # Demo-only provider pricing.
-    # Fee = percentage of the amount + fixed fee in source currency.
-    provider_pricing = {
-        "Wise": {
-            "fee_percent": 0.008,
-            "fixed_fee": 100.0,
-        },
-        "Remitly": {
-            "fee_percent": 0.012,
-            "fixed_fee": 150.0,
-        },
-        "Bank": {
-            "fee_percent": 0.015,
-            "fixed_fee": 250.0,
-        },
-        "M-Pesa": {
-            "fee_percent": 0.010,
-            "fixed_fee": 100.0,
-        },
-        "Cash pickup": {
-            "fee_percent": 0.020,
-            "fixed_fee": 300.0,
-        },
-    }
-
-    pricing = provider_pricing[channel]
-
-    fee = (
-        amount * pricing["fee_percent"]
-        + pricing["fixed_fee"]
+    comparison_data = _request_wise_comparison(
+        source_currency,
+        target_currency,
+        amount,
+        mid_market_rate,
     )
 
-    # Never allow the fee to exceed the amount being sent.
-    fee = min(fee, amount)
+    quote = _select_provider_quote(comparison_data, channel)
 
-    amount_after_fee = amount - fee
-    provider_result = amount_after_fee * mid_market_rate
+    provider_rate = quote.get("rate")
+    if provider_rate is None:
+        raise LookupError(f"No usable {channel} provider rate was returned for this route.")
 
-    # Effective rate after the provider's simulated fee.
-    provider_rate = (
-        provider_result / amount
-        if amount
-        else mid_market_rate
-    )
+    provider_result = quote["received_amount"]
 
+    fee = quote["fee"]
     difference = mid_market_result - provider_result
     cost_percent = (
         difference / mid_market_result * 100
         if mid_market_result
+        else 0.0
+    )
+
+    fee_percent = (
+        fee / amount * 100
+        if amount
         else 0.0
     )
 
@@ -233,34 +208,34 @@ def _build_comparison(source_currency, target_currency, amount, channel):
         "midMarketResult": mid_market_result,
 
         "provider": {
-            "id": channel.lower().replace(" ", "-"),
-            "alias": channel.lower().replace(" ", "-"),
-            "name": channel,
-            "type": "remittance" if channel != "Bank" else "bank",
+            "id": quote["provider_id"],
+            "alias": quote["provider_alias"],
+            "name": quote["provider_name"],
+            "type": quote["provider_type"],
         },
 
         "providerRate": provider_rate,
         "fee": fee,
         "feeCurrency": source_currency,
-        "feePercent": pricing["fee_percent"] * 100,
-        "markupPercent": pricing["fee_percent"] * 100,
+        "feePercent": fee_percent,
+        "markupPercent": quote.get("markup"),
 
-        "amountAfterFee": amount_after_fee,
+        "amountAfterFee": amount - fee,
         "providerResult": provider_result,
 
         "difference": difference,
         "costPercent": cost_percent,
 
-        "dateCollected": None,
-        "deliveryEstimation": None,
-        "sourceCountry": None,
-        "targetCountry": None,
-        "isMidMarket": False,
+        "dateCollected": quote.get("date_collected"),
+        "deliveryEstimation": quote.get("delivery_estimation"),
+        "sourceCountry": quote.get("source_country"),
+        "targetCountry": quote.get("target_country"),
+        "isMidMarket": quote.get("is_mid_market", False),
 
-        "isMockPricing": True,
+        "isMockPricing": False,
         "comparisonDisclaimer": (
-            "Provider fees and markups are simulated for this capstone demo. "
-            "The underlying market exchange rate is live."
+            "Provider pricing is based on the available comparison quote. "
+            "Exchange rates and provider pricing may change."
         ),
     }
 
