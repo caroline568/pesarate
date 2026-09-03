@@ -64,6 +64,18 @@ def create_trip():
         budget_kes=float(data["budget_kes"]),
         target_currency=str(data["target_currency"]).upper()[:3],
         channel=(str(data["channel"]).strip()[:40] if data.get("channel") else None),
+        country_code=(str(data["country_code"]).strip().upper()[:2] if data.get("country_code") else None),
+        budget_breakdown=data.get("budget_breakdown") or {},
+        currency_recommendation=(
+            str(data["currency_recommendation"]).strip().upper()[:3]
+            if data.get("currency_recommendation")
+            else None
+        ),
+        channel_recommendation=(
+            str(data["channel_recommendation"]).strip()[:40]
+            if data.get("channel_recommendation")
+            else None
+        ),
         rate=float(data["rate"]),
         converted_amount=float(data["converted_amount"]),
     )
@@ -96,6 +108,26 @@ def update_trip(trip_id):
         trip.target_currency = str(data["target_currency"]).upper()[:3]
     if "channel" in data:
         trip.channel = str(data["channel"]).strip()[:40] if data["channel"] else None
+    if "country_code" in data:
+        trip.country_code = (
+            str(data["country_code"]).strip().upper()[:2]
+            if data["country_code"]
+            else None
+        )
+    if "budget_breakdown" in data:
+        trip.budget_breakdown = data["budget_breakdown"] or {}
+    if "currency_recommendation" in data:
+        trip.currency_recommendation = (
+            str(data["currency_recommendation"]).strip().upper()[:3]
+            if data["currency_recommendation"]
+            else None
+        )
+    if "channel_recommendation" in data:
+        trip.channel_recommendation = (
+            str(data["channel_recommendation"]).strip()[:40]
+            if data["channel_recommendation"]
+            else None
+        )
     if "rate" in data:
         trip.rate = float(data["rate"])
     if "converted_amount" in data:

@@ -153,6 +153,10 @@ class Trip(db.Model):
     budget_kes = db.Column(db.Float, nullable=False)
     target_currency = db.Column(db.String(3), nullable=False)
     channel = db.Column(db.String(40), nullable=True)
+    country_code = db.Column(db.String(2), nullable=True)
+    budget_breakdown = db.Column(db.JSON, nullable=True)
+    currency_recommendation = db.Column(db.String(3), nullable=True)
+    channel_recommendation = db.Column(db.String(40), nullable=True)
     rate = db.Column(db.Float, nullable=False)
     converted_amount = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=now)
@@ -171,6 +175,10 @@ class Trip(db.Model):
             "budget_kes": self.budget_kes,
             "target_currency": self.target_currency,
             "channel": self.channel,
+            "country_code": self.country_code,
+            "budget_breakdown": self.budget_breakdown or {},
+            "currency_recommendation": self.currency_recommendation,
+            "channel_recommendation": self.channel_recommendation,
             "rate": self.rate,
             "converted_amount": self.converted_amount,
             "created_at": (
