@@ -134,7 +134,7 @@ export default function Convert() {
 
         if (!data?.comparison) {
           setComparisonError(
-            "Provider pricing is unavailable right now. Using the current market rate."
+            "Using the current market rate."
           );
         }
       })
@@ -145,7 +145,7 @@ export default function Convert() {
 
         setComparison(null);
         setComparisonError(
-          "Provider pricing is unavailable right now. Using the current market rate."
+          "Using the current market rate."
         );
       });
 
@@ -305,20 +305,20 @@ export default function Convert() {
     Number.isFinite(rate);
 
   /*
-   * Best channel across the comparison table, by final recipient
-   * amount. Only considers channels that returned a usable quote.
+   * Best channel across the comparison table, by lowest total cost.
+   * Only considers channels that returned a usable quote.
    */
   const bestChannel = useMemo(() => {
     let best = null;
 
     Object.entries(channelComparisons).forEach(([ch, data]) => {
-      const received = Number(data?.providerResult);
+      const cost = Number(data?.costPercent);
 
-      if (!data || !Number.isFinite(received)) {
+      if (!data || !Number.isFinite(cost)) {
         return;
       }
 
-      if (!best || received > Number(best.data.providerResult)) {
+      if (!best || cost < Number(best.data.costPercent)) {
         best = { channel: ch, data };
       }
     });
@@ -342,7 +342,7 @@ export default function Convert() {
       )} ${from} is worth about ${formatNumber(
         result,
         2
-      )} ${to} at the current market rate. Provider pricing is unavailable right now.`;
+      )} ${to} at the current market rate.`;
     }
 
     if (from === to) {
@@ -576,7 +576,7 @@ export default function Convert() {
 
                 <p className="mt-1 text-[9px] leading-4 text-slate-400">
                   {comparisonError ||
-                    "Provider pricing is unavailable right now. Your conversion still uses the current market rate."}
+                    "The market rate is being used for this conversion."}
                 </p>
               </div>
             )}
@@ -702,7 +702,27 @@ export default function Convert() {
                 )}
               </div>
 
-              <div className="mt-3 space-y-2">
+              {bestChannel?.data && (
+                <div className="mb-3 rounded-lg border border-[#55c94b]/30 bg-[#55c94b]/5 p-3">
+                  <p className="text-[8px] font-semibold uppercase tracking-wide text-[#43b34d]">
+                    Recommendation
+                  </p>
+                  <p className="mt-1 text-[11px] font-bold text-slate-900">
+                    Use {bestChannel.channel} — lowest cost ({formatNumber(
+                      bestChannel.data.costPercent,
+                      2
+                    )}%)
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-slate-100 px-1 pb-2 text-[8px] font-semibold uppercase tracking-wide text-slate-400">
+                <span>Channel</span>
+                <span>Cost</span>
+                <span>Recipient gets</span>
+              </div>
+
+              <div className="mt-2 space-y-2">
                 {CHANNELS.map((ch) => {
                   const data = channelComparisons[ch];
                   const isBest = bestChannel?.channel === ch;
@@ -711,7 +731,7 @@ export default function Convert() {
                   return (
                     <div
                       key={ch}
-                      className={`flex items-center justify-between gap-3 rounded-lg border p-3 ${
+                      className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg border p-3 ${
                         isBest
                           ? "border-[#55c94b] bg-[#55c94b]/5"
                           : "border-slate-200"
@@ -720,32 +740,30 @@ export default function Convert() {
                       <div>
                         <p className="flex flex-wrap items-center gap-2 text-[10px] font-semibold text-slate-800">
                           {ch}
-
                           {isBest && (
                             <span className="rounded-full bg-[#55c94b] px-1.5 py-0.5 text-[7px] font-bold uppercase text-white">
-                              Best value
+                              Lowest cost
                             </span>
                           )}
-
                           {isSelected && !isBest && (
                             <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[7px] font-bold uppercase text-slate-600">
                               Selected
                             </span>
                           )}
                         </p>
+                      </div>
 
-                        <p className="mt-1 text-[8px] text-slate-400">
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-slate-900">
                           {data
-                            ? `Fee ${formatNumber(data.fee, 2)} ${
-                                data.feeCurrency || from
-                              } · Rate 1 ${from} = ${formatNumber(
-                                data.providerRate,
-                                4
-                              )} ${to}`
-                            : channelComparisonsLoading
-                              ? "Checking pricing…"
-                              : "Pricing unavailable"}
+                            ? `${formatNumber(data.costPercent, 2)}%`
+                            : "—"}
                         </p>
+                        {data && (
+                          <p className="text-[8px] text-slate-400">
+                            {formatNumber(data.fee, 2)} {data.feeCurrency || from}
+                          </p>
+                        )}
                       </div>
 
                       <div className="text-right">
@@ -754,8 +772,7 @@ export default function Convert() {
                             ? `${formatNumber(data.providerResult, 2)} ${to}`
                             : "—"}
                         </p>
-
-                        {!isSelected && (
+                        {!isSelected && data && (
                           <button
                             type="button"
                             onClick={() => setChannel(ch)}
