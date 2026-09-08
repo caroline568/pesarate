@@ -10,14 +10,32 @@ import {
   TrendingUp,
   WalletCards,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import pesarateLogo from "../assets/pesarate-logo.png";
+import { useRates } from "../hooks/useRates";
 
 const CHANNELS = [
   { name: "Wise", cost: "0.80%", amount: "386.34 USD" },
   { name: "Remitly", cost: "1.20%", amount: "384.82 USD" },
   { name: "Bank", cost: "1.50%", amount: "383.70 USD" },
 ];
+
+// Snapshot on the landing page is pre-login, so it always simulates the
+// "Wise" channel's cost rather than letting the visitor pick a provider.
+const SNAPSHOT_WISE_COST = 0.008;
+const SNAPSHOT_CURRENCIES = ["USD", "GBP", "EUR"];
+// Seeds the snapshot before the live rates call resolves, so the card never
+// flashes empty. Overwritten by useRates("KES") as soon as it loads.
+const SNAPSHOT_FALLBACK_RATES = { USD: 129.42, GBP: 174.08, EUR: 151.22 };
+
+function formatSnapshotNumber(value, digits = 2) {
+  if (!Number.isFinite(value)) return "—";
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
 
 const FEATURES = [
   {
@@ -399,6 +417,22 @@ function FloatingFeatureSection() {
 }
 
 function Landing() {
+  const [snapshotAmount, setSnapshotAmount] = useState(50000);
+  const [snapshotCurrency, setSnapshotCurrency] = useState("USD");
+  const { rates: kesRates, status: kesRatesStatus } = useRates("KES");
+
+  // KES value of 1 unit of `currency`, live when available, seeded from the
+  // fallback otherwise. useRates("KES") returns units of `currency` per 1
+  // KES, so it's inverted here.
+  const kesPerUnit = (currency) =>
+    kesRates?.[currency]
+      ? 1 / kesRates[currency]
+      : SNAPSHOT_FALLBACK_RATES[currency];
+
+  const snapshotMidMarketRate = kesPerUnit(snapshotCurrency);
+  const snapshotRecipientGets =
+    (snapshotAmount / snapshotMidMarketRate) * (1 - SNAPSHOT_WISE_COST);
+
   return (
     <div className="min-h-screen bg-[#f6f8fb] text-[#031933]">
       <header className="absolute left-0 right-0 top-0 z-50">
@@ -608,34 +642,58 @@ function Landing() {
                       Decision snapshot
                     </p>
                     <p className="mt-1 text-lg font-bold text-white">
-                      KES → USD
+                      KES → {snapshotCurrency}
                     </p>
                   </div>
 
                   <div className="rounded-full bg-[#55c94b]/10 px-3 py-1.5 text-xs font-bold text-[#55c94b]">
-                    LIVE
+                    {kesRatesStatus === "loading" ? "SYNCING" : "LIVE"}
                   </div>
                 </div>
 
                 <div className="mt-6 rounded-3xl bg-[#031933] p-5">
-                  <div className="flex items-end justify-between">
+                  <div className="flex items-end justify-between gap-4">
                     <div>
-                      <p className="text-xs text-white/35">
+                      <label
+                        htmlFor="snapshot-amount"
+                        className="text-xs text-white/35"
+                      >
                         You send
-                      </p>
-                      <p className="mt-1 text-3xl font-bold text-white">
-                        50,000 KES
-                      </p>
+                      </label>
+                      <div className="mt-1 flex items-baseline gap-1.5">
+                        <input
+                          id="snapshot-amount"
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          value={snapshotAmount}
+                          onChange={(event) =>
+                            setSnapshotAmount(
+                              Math.max(0, Number(event.target.value) || 0)
+                            )
+                          }
+                          className="w-28 rounded-lg bg-transparent text-3xl font-bold text-white outline-none focus:bg-white/5 sm:w-32"
+                        />
+                        <span className="text-lg font-bold text-white/50">
+                          KES
+                        </span>
+                      </div>
                     </div>
 
-                    <ArrowRight className="text-[#55c94b]" size={20} />
+                    <ArrowRight
+                      className="mb-2 shrink-0 text-[#55c94b]"
+                      size={20}
+                    />
 
                     <div className="text-right">
                       <p className="text-xs text-white/35">
                         Recipient gets
                       </p>
                       <p className="mt-1 text-3xl font-bold text-white">
-                        386.34 USD
+                        {formatSnapshotNumber(snapshotRecipientGets)}{" "}
+                        <span className="text-lg text-white/50">
+                          {snapshotCurrency}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -655,40 +713,47 @@ function Landing() {
                         Mid-market rate
                       </span>
                       <span className="font-semibold text-white">
-                        1 USD = 129.42 KES
+                        1 {snapshotCurrency} ={" "}
+                        {formatSnapshotNumber(snapshotMidMarketRate)} KES
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl bg-white/4 p-3">
-                    <p className="text-[10px] uppercase tracking-widest text-white/30">
-                      USD
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-white">
-                      129.42
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl bg-white/4 p-3">
-                    <p className="text-[10px] uppercase tracking-widest text-white/30">
-                      GBP
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-white">
-                      174.08
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl bg-white/4 p-3">
-                    <p className="text-[10px] uppercase tracking-widest text-white/30">
-                      EUR
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-white">
-                      151.22
-                    </p>
-                  </div>
+                  {SNAPSHOT_CURRENCIES.map((currency) => {
+                    const isActive = currency === snapshotCurrency;
+                    return (
+                      <button
+                        key={currency}
+                        type="button"
+                        onClick={() => setSnapshotCurrency(currency)}
+                        aria-pressed={isActive}
+                        className={`rounded-2xl p-3 text-left transition ${
+                          isActive
+                            ? "bg-[#55c94b]/15 ring-1 ring-[#55c94b]/60"
+                            : "bg-white/4 hover:bg-white/8"
+                        }`}
+                      >
+                        <p
+                          className={`text-[10px] uppercase tracking-widest ${
+                            isActive ? "text-[#55c94b]" : "text-white/30"
+                          }`}
+                        >
+                          {currency}
+                        </p>
+                        <p className="mt-1 text-sm font-bold text-white">
+                          {formatSnapshotNumber(kesPerUnit(currency))}
+                        </p>
+                      </button>
+                    );
+                  })}
                 </div>
+
+                <p className="mt-3 text-center text-[11px] text-white/30">
+                  Tap a currency to see it convert · sign up to compare every
+                  channel
+                </p>
               </div>
             </div>
           </div>
